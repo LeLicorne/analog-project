@@ -1,13 +1,12 @@
-import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { ProgressStore } from '@app/core/progress/progress.store';
-import { pageTitle } from '@app/core/seo/page-title';
+import { usePageSeo } from '@app/core/seo/seo.service';
+import { SITE_URL } from '@app/core/seo/site';
 import { ThemeCardsComponent } from '@app/features/themes/theme-cards.component';
-
-export const routeMeta = {
-  title: pageTitle('Un quiz gratuit chaque jour'),
-} satisfies RouteMeta;
+import { FAQ } from '@data/faq';
+import { faqPage, graph, organization, webSite } from '@data/seo/json-ld';
+import { homeMeta } from '@data/seo/page-meta';
 
 @Component({
   selector: 'app-home-page',
@@ -27,8 +26,25 @@ export const routeMeta = {
     }
     <h2>Les quiz d’aujourd’hui</h2>
     <app-theme-cards />
+
+    <section class="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions fréquentes</h2>
+      @for (entry of faq; track entry.question) {
+        <h3>{{ entry.question }}</h3>
+        <p>{{ entry.answer }}</p>
+      }
+    </section>
   `,
 })
 export default class HomePage {
   protected readonly progress = inject(ProgressStore);
+  protected readonly faq = FAQ;
+
+  constructor() {
+    usePageSeo(() => ({
+      ...homeMeta(),
+      path: '/',
+      jsonLd: [graph(organization(SITE_URL), webSite(SITE_URL), faqPage(FAQ))],
+    }));
+  }
 }

@@ -1,5 +1,9 @@
+import { injectResponse } from '@analogjs/router/tokens';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+
+import { usePageSeo } from '@app/core/seo/seo.service';
+import { notFoundMeta } from '@data/seo/page-meta';
 
 @Component({
   selector: 'app-not-found',
@@ -11,4 +15,11 @@ import { RouterLink } from '@angular/router';
     <p><a routerLink="/" class="btn">Retour à l’accueil</a></p>
   `,
 })
-export class NotFoundComponent {}
+export class NotFoundComponent {
+  constructor() {
+    // Rendu côté serveur : un vrai code 404, sinon les moteurs indexeraient ces pages vides.
+    const response = injectResponse();
+    if (response) response.statusCode = 404;
+    usePageSeo(() => ({ ...notFoundMeta(), noindex: true }));
+  }
+}

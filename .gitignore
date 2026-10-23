@@ -53,3 +53,7 @@ Thumbs.db
 # Playwright
 /playwright-report
 /test-results
+
+# Journaux des émulateurs Firebase
+*-debug.log
+/.firebase

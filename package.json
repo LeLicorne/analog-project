@@ -17,13 +17,14 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit",
+    "typecheck": "ngc -p tsconfig.app.json --noEmit && tsc -p tsconfig.spec.json --noEmit",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
+    "test:e2e": "bun run build:e2e && playwright test",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
     "prepare": "simple-git-hooks",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-quizz-du-jour \"vitest run --config vitest.rules.config.ts\""
+    "test:rules": "firebase emulators:exec --only firestore --project demo-quizz-du-jour \"vitest run --config vitest.rules.config.ts\"",
+    "build:e2e": "NODE_ENV=production VITE_USE_FIREBASE_EMULATORS=true vite build"
   },
   "private": true,
   "dependencies": {
@@ -63,6 +64,7 @@
     "eslint-plugin-import-x": "^4.17.1",
     "firebase-tools": "^15.34.1",
     "jsdom": "^22.0.0",
+    "lighthouse": "^13.5.0",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.10",
     "simple-git-hooks": "^2.14.0",

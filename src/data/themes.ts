@@ -39,7 +39,7 @@ export const THEMES = [
     name: 'Web & code',
     tagline: 'HTML, CSS, JavaScript, réseau, sécurité',
     description:
-      'Cinq questions par jour sur le développement web : HTML, CSS, JavaScript, TypeScript, HTTP, accessibilité et sécurité, avec renvoi à la documentation officielle.',
+      'Cinq questions par jour sur le développement web : HTML, CSS, JavaScript, HTTP, accessibilité et sécurité, avec renvoi à la documentation officielle.',
     icon: '💻',
   },
   {

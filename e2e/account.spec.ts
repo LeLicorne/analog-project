@@ -1,5 +1,7 @@
 import { AxeBuilder } from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { type Page } from '@playwright/test';
+
+import { expect, test } from './fixtures';
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 const PASSWORD = 'mot-de-passe-solide-42';
@@ -32,7 +34,10 @@ async function signUp(page: Page, email: string): Promise<void> {
   await page.getByLabel('Adresse e-mail').fill(email);
   await page.getByLabel('Mot de passe', { exact: true }).fill(PASSWORD);
   await page.getByRole('button', { name: 'Créer mon compte' }).click();
-  await expect(page.getByRole('button', { name: 'Se déconnecter' })).toBeVisible();
+  // La toute première création de compte auprès d'un émulateur froid peut être lente.
+  await expect(page.getByRole('button', { name: 'Se déconnecter' })).toBeVisible({
+    timeout: 25_000,
+  });
 }
 
 test.describe('compte', () => {
@@ -90,9 +95,6 @@ test.describe('compte', () => {
 
     await playOneQuiz(page, 'web');
 
-    // Laisse la synchronisation partir vers Firestore avant de se déconnecter.
-    await page.waitForTimeout(1500);
-
     await page.getByRole('button', { name: 'Se déconnecter' }).click();
     await expect(page.getByRole('link', { name: 'Se connecter' })).toBeVisible();
     await expect(page.locator('main')).toBeFocused();
@@ -113,6 +115,23 @@ test.describe('compte', () => {
 
   test('les pages de compte ne sont pas indexables', async ({ page }) => {
     await page.goto('/connexion');
-    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+  });
+});
+
+test.describe('avant l’hydratation (sans JavaScript)', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('le bouton d’envoi est désactivé : aucun mot de passe ne peut partir dans l’adresse', async ({
+    page,
+  }) => {
+    await page.goto('/connexion');
+    const submit = page.getByRole('button', { name: 'Me connecter' });
+    await expect(submit).toBeDisabled();
+
+    await page.getByLabel('Adresse e-mail').fill('joueur@example.test');
+    await page.getByLabel('Mot de passe', { exact: true }).fill(PASSWORD);
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/connexion$/);
   });
 });

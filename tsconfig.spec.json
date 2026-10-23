@@ -13,6 +13,7 @@
     "e2e/**/*.ts",
     "playwright.config.ts",
     "rules-tests/**/*.ts",
+    "scripts/**/*.ts",
     "vitest.rules.config.ts"
   ]
 }

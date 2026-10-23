@@ -85,8 +85,6 @@ export class AuthService {
   async signOut(): Promise<void> {
     const [auth, { signOut }] = await Promise.all([this.firebase.auth(), import('firebase/auth')]);
     await signOut(auth);
-    // Les résultats sont déjà dans le compte : on vide l'appareil, qui peut être partagé.
-    this.progress.clear();
   }
 
   private listen(): Promise<void> {
@@ -97,6 +95,9 @@ export class AuthService {
       ]);
       await new Promise<void>((resolve) => {
         onAuthStateChanged(auth, (user) => {
+          // Les résultats sont déjà dans le compte : à la déconnexion on vide l'appareil, qui peut être partagé.
+          // Fait dans ce callback, au même instant que le changement d'état, pour qu'aucun rechargement ne passe entre les deux.
+          if (this.status() === 'signed-in' && !user) this.progress.clear();
           this.user.set(user ? { uid: user.uid, email: user.email } : null);
           this.status.set(user ? 'signed-in' : 'signed-out');
           writeSessionHint(user !== null);

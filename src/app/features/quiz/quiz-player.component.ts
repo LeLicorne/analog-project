@@ -15,6 +15,7 @@ import {
 import { RouterLink } from '@angular/router';
 
 import { ProgressStore } from '@app/core/progress/progress.store';
+import { Interactive } from '@app/core/runtime/interactive.service';
 import { formatLongDate } from '@data/dates';
 import type { Answer, IsoDate, Question, ThemeSlug } from '@data/quiz.types';
 import { answerOptions, countCorrect, isCorrect, shareSummary } from '@data/scoring';
@@ -51,7 +52,7 @@ interface ShareCapableNavigator {
                 type="radio"
                 name="answer"
                 [checked]="selected() === option.value"
-                [disabled]="validated()"
+                [attr.disabled]="validated() || !interactive.ready() ? '' : null"
                 (change)="choose(option.value)"
               />
               <span class="choice__text">{{ option.label }}</span>
@@ -95,7 +96,9 @@ interface ShareCapableNavigator {
             {{ isLast() ? 'Voir mon score' : 'Question suivante' }}
           </button>
         } @else {
-          <button type="submit" class="btn">Valider ma réponse</button>
+          <button type="submit" class="btn" [attr.disabled]="interactive.ready() ? null : ''">
+            Valider ma réponse
+          </button>
         }
       </form>
     } @else {
@@ -142,6 +145,7 @@ export class QuizPlayerComponent {
   readonly questions = input.required<readonly Question[]>();
 
   protected readonly progress = inject(ProgressStore);
+  protected readonly interactive = inject(Interactive);
   private readonly document = inject(DOCUMENT);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);

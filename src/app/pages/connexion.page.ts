@@ -1,13 +1,8 @@
-import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
-import { pageTitle } from '@app/core/seo/page-title';
+import { usePageSeo } from '@app/core/seo/seo.service';
 import { AuthFormComponent } from '@app/features/account/auth-form.component';
-
-export const routeMeta = {
-  title: pageTitle('Se connecter'),
-  meta: [{ name: 'robots', content: 'noindex' }],
-} satisfies RouteMeta;
+import { accountMeta } from '@data/seo/page-meta';
 
 @Component({
   selector: 'app-login-page',
@@ -15,4 +10,8 @@ export const routeMeta = {
   imports: [AuthFormComponent],
   template: `<app-auth-form mode="login" />`,
 })
-export default class LoginPage {}
+export default class LoginPage {
+  constructor() {
+    usePageSeo(() => ({ ...accountMeta('login'), noindex: true }));
+  }
+}

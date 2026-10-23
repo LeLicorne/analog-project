@@ -1,4 +1,5 @@
-import { Injectable, afterNextRender, computed, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, PLATFORM_ID, afterNextRender, computed, inject, signal } from '@angular/core';
 import { z } from 'zod';
 
 import { isIsoDate, toIsoDate } from '@data/dates';
@@ -73,7 +74,10 @@ export class ProgressStore {
   readonly streak = computed(() => computeStreak(this.playedDates(), toIsoDate(new Date())));
 
   constructor() {
+    const isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+    // `afterNextRender` s'exécute aussi pendant le rendu serveur : sans ce test, `ready` serait déjà vrai dans le HTML.
     afterNextRender(() => {
+      if (!isBrowser) return;
       this.state.set(readStorage());
       this.ready.set(true);
     });

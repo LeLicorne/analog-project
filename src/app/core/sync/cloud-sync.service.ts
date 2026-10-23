@@ -20,6 +20,8 @@ export class CloudSyncService {
 
   private readonly syncedKeys = new Set<string>();
   private pulledUid: string | null = null;
+  /** Les opérations s'enchaînent une par une : une sauvegarde ne double jamais la précédente. */
+  private queue: Promise<void> = Promise.resolve();
 
   constructor() {
     effect(() => {
@@ -27,8 +29,27 @@ export class CloudSyncService {
       const ready = this.progress.ready();
       const results = this.progress.results();
       if (!ready) return;
-      untracked(() => void this.sync(uid, results));
+      untracked(() => {
+        this.enqueue(() => this.sync(uid, results));
+      });
     });
+  }
+
+  /**
+   * Attend que tout ce qui est en cours soit envoyé au compte. À appeler avant une déconnexion :
+   * renvoie `false` si la sauvegarde a échoué (réseau coupé), pour ne pas perdre de résultats.
+   */
+  async flush(): Promise<boolean> {
+    await this.queue;
+    const uid = this.auth.user()?.uid;
+    if (!uid) return true;
+    this.enqueue(() => this.sync(uid, this.progress.results()));
+    await this.queue;
+    return this.state() !== 'error';
+  }
+
+  private enqueue(task: () => Promise<void>): void {
+    this.queue = this.queue.then(task, task);
   }
 
   private async sync(uid: string | null, results: QuizResults): Promise<void> {

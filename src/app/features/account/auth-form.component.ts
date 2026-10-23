@@ -13,6 +13,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { authErrorMessage } from '@app/core/auth/auth-errors';
 import { AuthService } from '@app/core/auth/auth.service';
+import { Interactive } from '@app/core/runtime/interactive.service';
 
 export type AuthMode = 'login' | 'signup';
 
@@ -95,6 +96,7 @@ const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
           <label class="checkbox">
             <input
               type="checkbox"
+              [attr.disabled]="interactive.ready() ? null : ''"
               [checked]="showPassword()"
               (change)="showPassword.set(!showPassword())"
             />
@@ -102,7 +104,11 @@ const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
           </label>
         </div>
 
-        <button type="submit" class="btn" [disabled]="busy()">
+        <button
+          type="submit"
+          class="btn"
+          [attr.disabled]="busy() || !interactive.ready() ? '' : null"
+        >
           {{ busy() ? 'Veuillez patienter…' : isSignup() ? 'Créer mon compte' : 'Me connecter' }}
         </button>
 
@@ -130,6 +136,7 @@ export class AuthFormComponent {
   readonly mode = input.required<AuthMode>();
 
   protected readonly auth = inject(AuthService);
+  protected readonly interactive = inject(Interactive);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
   private readonly injector = inject(Injector);

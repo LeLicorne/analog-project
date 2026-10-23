@@ -10,7 +10,7 @@ import {
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '@app/core/auth/auth.service';
-import { SITE_NAME } from '@app/core/seo/page-title';
+import { SITE_NAME } from '@app/core/seo/site';
 import { CloudSyncService } from '@app/core/sync/cloud-sync.service';
 import { AccountMenuComponent } from '@app/features/account/account-menu.component';
 import { THEMES } from '@data/themes';
@@ -38,7 +38,10 @@ import { THEMES } from '@data/themes';
       <router-outlet />
     </main>
     <footer class="site-footer">
-      <p>{{ siteName }} · un quiz gratuit chaque jour, sans compte et sans limite de temps.</p>
+      <p>
+        {{ siteName }} · un quiz gratuit chaque jour, sans compte et sans limite de temps ·
+        <a routerLink="/a-propos">À propos</a>
+      </p>
     </footer>
   `,
 })

@@ -1,22 +1,11 @@
-import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
-import { pageTitle } from '@app/core/seo/page-title';
 import { QuizPageComponent } from '@app/features/quiz/quiz-page.component';
 import { NotFoundComponent } from '@app/shared/not-found.component';
 import { toIsoDate } from '@data/dates';
-import { getTheme, isThemeSlug } from '@data/themes';
-
-export const routeMeta = {
-  title: (route) => {
-    const slug = route.paramMap.get('theme') ?? '';
-    return isThemeSlug(slug)
-      ? pageTitle(`Quiz ${getTheme(slug).name} du jour`)
-      : pageTitle('Page introuvable');
-  },
-} satisfies RouteMeta;
+import { isThemeSlug } from '@data/themes';
 
 @Component({
   selector: 'app-today-quiz-page',

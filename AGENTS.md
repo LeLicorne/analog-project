@@ -38,7 +38,7 @@ Règles de dépendances (appliquées par ESLint) : `pages → features/shared/co
 - Préfixe `app-` pour les sélecteurs. Pas de `console.log`.
 - Tests colocalisés `*.spec.ts` (Vitest). **Tout code généré doit être relu, compris et testé** : pas de logique métier sans test.
 - Pas de `innerHTML` ni `bypassSecurityTrust*`. Entrées externes validées avec Zod.
-- Firebase : Auth et Firestore sont chargés à la demande (`import()`), jamais en import statique ; les écritures Firestore respectent `firestore.rules` (testées par `test:rules`). Les tests e2e ne touchent jamais le vrai projet : émulateurs uniquement.
+- Firebase : Auth et Firestore sont chargés à la demande (`import()`), jamais en import statique ; les écritures Firestore respectent `firestore.rules` (testées par `test:rules`). Chaque suite de tests se lance une seule fois par vérification. Les tests e2e ne touchent jamais le vrai projet : émulateurs uniquement.
 - Secrets : jamais dans le dépôt. `.env` ignoré, `.env.example` à jour.
 
 ## Accessibilité, SEO, GEO (priorité du projet)
@@ -46,10 +46,18 @@ Règles de dépendances (appliquées par ESLint) : `pages → features/shared/co
 - WCAG 2.2 AA minimum et RGAA 4 : HTML sémantique d'abord, ARIA seulement si nécessaire, focus visible, contraste ≥ 4.5:1, rien n'est transmis par la couleur seule, `prefers-reduced-motion` respecté, aucune limite de temps.
 - Toute nouvelle page : `title` unique, meta description, canonical, un seul `h1`, JSON-LD adapté, contenu présent dans le HTML rendu côté serveur (SSG/SSR).
 - Chaque page ajoutée est ajoutée à `e2e/a11y.spec.ts` et aux routes prérendues de `vite.config.ts`.
-- Pas de `llms.txt` : le GEO repose sur du contenu rendu côté serveur, factuel, sourcé, daté, avec données structurées.
+- `/llms.txt` existe (généré par `src/data/seo/llms.ts`) comme point d'entrée lisible, mais le GEO repose d'abord sur du contenu rendu côté serveur, factuel, sourcé, daté, avec données structurées.
+
+## Pièges connus (détails dans `docs/mesures.md`)
+
+- `afterNextRender` s'exécute aussi côté serveur : tester `isPlatformBrowser` avant de poser un drapeau « navigateur ».
+- Désactiver un contrôle avant hydratation : `[attr.disabled]`, jamais `[disabled]` (non écrit dans le HTML serveur).
+- Playwright force `NODE_ENV=test`, qui coupe le SSR d'Analog : le build e2e passe par `bun run build:e2e` (`NODE_ENV=production`).
+- Variables d'URL : `VITE_SITE_URL` au build et `SITE_URL` à l'exécution du serveur (robots.txt, sitemap), même valeur.
 
 ## À ne pas faire
 
+- Ne pas retirer `fastCompile` de `vite.config.ts` : sans lui, le build produit au hasard des composants non compilés. `bun run typecheck` (ngc) vérifie les templates à sa place.
 - Ne pas désactiver une règle ESLint ou TypeScript pour faire passer un check : corriger la cause.
 - Ne pas ajouter de dépendance sans justification.
 - Ne pas commiter, pousser ni déployer sans demande explicite.

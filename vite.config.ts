@@ -11,12 +11,14 @@ import { THEME_SLUGS } from './src/data/quiz.types';
 /** Pages statiques : une fiche par thème et une page de corrigé par quiz passé. */
 function prerenderRoutes(): Promise<string[]> {
   const dates = archiveDates(toIsoDate(new Date()));
-  return Promise.resolve(
-    THEME_SLUGS.flatMap((theme) => [
+  return Promise.resolve([
+    '/',
+    '/a-propos',
+    ...THEME_SLUGS.flatMap((theme) => [
       `/themes/${theme}`,
       ...dates.map((date) => `/quiz/${theme}/${date}`),
     ]),
-  );
+  ]);
 }
 
 // https://vitejs.dev/config/
@@ -30,6 +32,9 @@ export default defineConfig(() => ({
   },
   plugins: [
     analog({
+      // Sans `fastCompile`, environ 1 build sur 4 émettait des composants non compilés (« JIT compiler unavailable »),
+      // aléatoirement, côté client comme côté serveur. Les templates sont vérifiés par `ngc` dans `bun run typecheck`.
+      vite: { fastCompile: true },
       prerender: {
         routes: prerenderRoutes,
       },

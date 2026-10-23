@@ -54,3 +54,13 @@ export function formatLongDate(date: IsoDate): string {
     year: 'numeric',
   }).format(new Date(`${date}T00:00:00Z`));
 }
+
+/** « 23 octobre 2026 » : forme courte, utilisée dans les titres de page. */
+export function formatDate(date: IsoDate): string {
+  return new Intl.DateTimeFormat('fr-FR', {
+    timeZone: 'UTC',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(`${date}T00:00:00Z`));
+}
