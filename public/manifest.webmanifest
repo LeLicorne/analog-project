@@ -1,0 +1,115 @@
+{
+  "id": "/",
+  "name": "Quizz du jour",
+  "short_name": "Quizz du jour",
+  "description": "Un quiz gratuit chaque jour : culture générale, histoire, géographie, sciences, web et gaming.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fffdf7",
+  "theme_color": "#ffd23f",
+  "categories": ["games", "education", "trivia"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quiz Culture générale",
+      "short_name": "Culture générale",
+      "description": "Le quiz Culture générale du jour",
+      "url": "/quiz/culture-generale",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Quiz Histoire",
+      "short_name": "Histoire",
+      "description": "Le quiz Histoire du jour",
+      "url": "/quiz/histoire",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Quiz Géographie",
+      "short_name": "Géographie",
+      "description": "Le quiz Géographie du jour",
+      "url": "/quiz/geographie",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Quiz Sciences",
+      "short_name": "Sciences",
+      "description": "Le quiz Sciences du jour",
+      "url": "/quiz/sciences",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Quiz Web & code",
+      "short_name": "Web & code",
+      "description": "Le quiz Web & code du jour",
+      "url": "/quiz/web",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Quiz Gaming",
+      "short_name": "Gaming",
+      "description": "Le quiz Gaming du jour",
+      "url": "/quiz/gaming",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

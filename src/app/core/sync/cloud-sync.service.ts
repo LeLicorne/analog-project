@@ -1,4 +1,13 @@
-import { Injectable, effect, inject, signal, untracked } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import {
+  DestroyRef,
+  Injectable,
+  PLATFORM_ID,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 
 import { AuthService } from '@app/core/auth/auth.service';
 import { FirebaseService } from '@app/core/firebase/firebase.service';
@@ -24,6 +33,19 @@ export class CloudSyncService {
   private queue: Promise<void> = Promise.resolve();
 
   constructor() {
+    if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      // Hors ligne, les résultats restent sur l'appareil : au retour du réseau, on reprend là où l'envoi avait échoué.
+      const retryWhenOnline = (): void => {
+        const uid = this.auth.user()?.uid;
+        if (uid && this.state() === 'error')
+          this.enqueue(() => this.sync(uid, this.progress.results()));
+      };
+      window.addEventListener('online', retryWhenOnline);
+      inject(DestroyRef).onDestroy(() => {
+        window.removeEventListener('online', retryWhenOnline);
+      });
+    }
+
     effect(() => {
       const uid = this.auth.user()?.uid ?? null;
       const ready = this.progress.ready();
@@ -60,9 +82,10 @@ export class CloudSyncService {
     }
     try {
       if (this.pulledUid !== uid) {
-        this.pulledUid = uid;
         this.state.set('syncing');
         await this.pull(uid);
+        // Marqué après coup : si la lecture échoue (hors ligne), la prochaine synchronisation la retente.
+        this.pulledUid = uid;
       } else {
         await this.push(uid, results);
       }

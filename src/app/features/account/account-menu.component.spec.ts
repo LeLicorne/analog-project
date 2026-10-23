@@ -6,6 +6,7 @@ import { provideRouter } from '@angular/router';
 import { AccountMenuComponent } from './account-menu.component';
 
 import { AuthService } from '@app/core/auth/auth.service';
+import { PushService } from '@app/core/pwa/push.service';
 import { CloudSyncService } from '@app/core/sync/cloud-sync.service';
 
 const auth = {
@@ -14,6 +15,7 @@ const auth = {
   signOut: vi.fn<() => Promise<void>>(),
 };
 const sync = { flush: vi.fn<() => Promise<boolean>>() };
+const push = { enabled: signal(false), disable: vi.fn<() => Promise<void>>() };
 
 function render(): {
   fixture: ReturnType<typeof TestBed.createComponent<AccountMenuComponent>>;
@@ -29,6 +31,7 @@ describe('AccountMenuComponent', () => {
     vi.resetAllMocks();
     auth.isSignedIn.set(false);
     auth.user.set(null);
+    push.enabled.set(false);
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -36,6 +39,7 @@ describe('AccountMenuComponent', () => {
         provideLocationMocks(),
         { provide: AuthService, useValue: auth },
         { provide: CloudSyncService, useValue: sync },
+        { provide: PushService, useValue: push },
       ],
     });
   });
@@ -65,6 +69,21 @@ describe('AccountMenuComponent', () => {
     expect(sync.flush).toHaveBeenCalledOnce();
     expect(auth.signOut).toHaveBeenCalledOnce();
     expect(sync.flush.mock.invocationCallOrder[0]).toBeLessThan(
+      auth.signOut.mock.invocationCallOrder[0] ?? 0,
+    );
+  });
+
+  it('retire l’appareil des notifications avant de déconnecter', async () => {
+    auth.isSignedIn.set(true);
+    push.enabled.set(true);
+    sync.flush.mockResolvedValue(true);
+    push.disable.mockResolvedValue(undefined);
+    auth.signOut.mockResolvedValue(undefined);
+    const { fixture, root } = render();
+    root.querySelector('button')?.click();
+    await fixture.whenStable();
+    expect(push.disable).toHaveBeenCalledOnce();
+    expect(push.disable.mock.invocationCallOrder[0]).toBeLessThan(
       auth.signOut.mock.invocationCallOrder[0] ?? 0,
     );
   });

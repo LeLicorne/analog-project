@@ -101,6 +101,44 @@ describe('règles Firestore : users/{uid}', () => {
     );
   });
 
+  it('permet d’enregistrer un appareil pour les notifications, sans résultat', async () => {
+    const db = env.authenticatedContext('alice').firestore();
+    await assertSucceeds(
+      setDoc(
+        doc(db, 'users/alice'),
+        { pushTokens: { abc123: 'jeton-fcm' }, updatedAt: serverTimestamp() },
+        { merge: true },
+      ),
+    );
+  });
+
+  it('refuse plus de 10 appareils', async () => {
+    const db = env.authenticatedContext('alice').firestore();
+    const tokens = Object.fromEntries(
+      Array.from({ length: 11 }, (_, index) => [`d${index}`, 'jeton']),
+    );
+    await assertFails(
+      setDoc(doc(db, 'users/alice'), { pushTokens: tokens, updatedAt: serverTimestamp() }),
+    );
+  });
+
+  it('refuse des appareils qui ne sont pas une map', async () => {
+    const db = env.authenticatedContext('alice').firestore();
+    await assertFails(
+      setDoc(doc(db, 'users/alice'), { pushTokens: ['jeton'], updatedAt: serverTimestamp() }),
+    );
+  });
+
+  it('refuse d’enregistrer un appareil sur le profil d’un autre', async () => {
+    const db = env.authenticatedContext('mallory').firestore();
+    await assertFails(
+      setDoc(doc(db, 'users/alice'), {
+        pushTokens: { x: 'jeton-pirate' },
+        updatedAt: serverTimestamp(),
+      }),
+    );
+  });
+
   it('refuse un updatedAt falsifié', async () => {
     const db = env.authenticatedContext('alice').firestore();
     await assertFails(

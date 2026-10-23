@@ -10,6 +10,10 @@ const FIREBASE_CONNECT_SOURCES = [
   'https://identitytoolkit.googleapis.com',
   'https://securetoken.googleapis.com',
   'https://firestore.googleapis.com',
+  // Notifications push (Firebase Cloud Messaging) : enregistrement de l'appareil.
+  'https://fcmregistrations.googleapis.com',
+  'https://fcm.googleapis.com',
+  'https://firebaseinstallations.googleapis.com',
 ] as const;
 
 const EMULATOR_CONNECT_SOURCES = [

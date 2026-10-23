@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '@app/core/auth/auth.service';
+import { PushService } from '@app/core/pwa/push.service';
 import { CloudSyncService } from '@app/core/sync/cloud-sync.service';
 
 @Component({
@@ -30,6 +31,7 @@ export class AccountMenuComponent {
   protected readonly auth = inject(AuthService);
   protected readonly logoutError = signal('');
   private readonly sync = inject(CloudSyncService);
+  private readonly push = inject(PushService);
   private readonly document = inject(DOCUMENT);
 
   protected async logout(): Promise<void> {
@@ -41,6 +43,8 @@ export class AccountMenuComponent {
       );
       return;
     }
+    // Après la déconnexion, l'appareil ne doit plus recevoir les rappels de ce compte.
+    if (this.push.enabled()) await this.push.disable();
     await this.auth.signOut();
     // Le bouton disparaît : sans cela le focus clavier serait perdu.
     this.document.getElementById('main')?.focus();

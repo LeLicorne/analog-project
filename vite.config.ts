@@ -2,12 +2,35 @@
 
 import analog from '@analogjs/platform';
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 
 import { archiveDates } from './src/data/archive';
 import { toIsoDate } from './src/data/dates';
 import { THEME_SLUGS } from './src/data/quiz.types';
 import { buildSecurityHeaders } from './src/data/security/headers';
+
+/**
+ * Liste les fichiers du build client dans `asset-manifest.json`, que le service worker précharge : sans elle, seuls les
+ * fichiers déjà visités seraient disponibles hors ligne (le code d'une page n'est chargé que quand on la visite).
+ * Les morceaux Firebase (`index.esm-*`, plus de 800 ko) sont exclus : ils se mettent en cache à la première utilisation.
+ */
+function assetManifest(): Plugin {
+  return {
+    name: 'asset-manifest',
+    apply: 'build',
+    generateBundle(_options, bundle) {
+      if (this.environment.name !== 'client') return;
+      const core = Object.keys(bundle).filter(
+        (file) => /^assets\/.+\.(js|css)$/.test(file) && !file.startsWith('assets/index.esm'),
+      );
+      this.emitFile({
+        type: 'asset',
+        fileName: 'asset-manifest.json',
+        source: JSON.stringify({ core }),
+      });
+    },
+  };
+}
 
 /** Pages statiques : une fiche par thème et une page de corrigé par quiz passé. */
 function prerenderRoutes(): Promise<string[]> {
@@ -53,6 +76,9 @@ export default defineConfig(({ mode }) => {
           routeRules: {
             // CSP stricte et en-têtes de sécurité sur TOUTES les réponses : pages statiques, pages rendues et fichiers.
             '/**': { headers: securityHeaders },
+            // Le service worker doit toujours être revalidé : c'est lui qui annonce les mises à jour.
+            '/sw.js': { headers: { 'cache-control': 'no-cache' } },
+            '/asset-manifest.json': { headers: { 'cache-control': 'no-cache' } },
             '/assets/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
           },
         },
@@ -61,6 +87,7 @@ export default defineConfig(({ mode }) => {
         },
       }),
       tailwindcss(),
+      assetManifest(),
     ],
     test: {
       globals: true,

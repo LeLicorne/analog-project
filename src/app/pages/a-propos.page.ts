@@ -38,6 +38,15 @@ import { aboutMeta } from '@data/seo/page-meta';
       autre mélange.
     </p>
 
+    <h2>Installer l’application et jouer hors ligne</h2>
+    <p>
+      Quizz du jour s’installe sur l’écran d’accueil, sans magasin d’applications : depuis Chrome ou
+      Edge, utilisez le bouton « Installer l’application » en bas de page ; depuis Safari sur
+      iPhone, choisissez Partager puis « Sur l’écran d’accueil ». Une fois installée, elle permet de
+      jouer aux quiz du jour sans connexion : vos résultats sont enregistrés sur l’appareil et
+      sauvegardés au retour du réseau.
+    </p>
+
     <h2>Vie privée</h2>
     <p>
       Jouer ne demande aucun compte. Vos résultats restent dans votre navigateur. Si vous créez un

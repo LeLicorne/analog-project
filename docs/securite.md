@@ -20,7 +20,8 @@
 
 ```
 default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self';
-connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com;
+connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com
+  https://fcmregistrations.googleapis.com https://fcm.googleapis.com https://firebaseinstallations.googleapis.com;
 manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 ```
 
@@ -29,9 +30,11 @@ manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form
   1. l'hydratation incrémentale d'Angular 22, active par défaut, qui injecte des scripts inline de relecture d'événements ;
   2. **Zod 4**, qui teste `eval` avec `new Function` (la CSP le signale même si l'erreur est capturée) ;
   3. `getAuth` de Firebase, qui charge un iframe et un script Google : remplacé par `initializeAuth` sans résolveur de popup.
-- **`connect-src` minimal** : seuls les trois services Firebase réellement appelés. Un test e2e vérifie qu'un parcours complet (inscription, partie, sauvegarde) ne contacte rien d'autre.
+- **`connect-src` minimal** : seuls les services Firebase réellement appelés (compte, base de données, notifications). Un test e2e vérifie qu'un parcours complet (inscription, partie, sauvegarde) ne contacte rien d'autre.
 - **Ajouter une source** : modifier `src/data/security/headers.ts` et son test, jamais contourner la CSP ailleurs.
 - **Le test de non-régression** : `e2e/fixtures.ts` fait échouer **tout** test e2e qui provoque une violation de CSP ou une erreur JavaScript non capturée.
+
+- **Service worker** : `/sw.js` porte la même CSP (`script-src 'self'`) : il n'importe aucun script externe, d'où des notifications gérées par notre propre code plutôt que par le service worker de Firebase. L'adresse ouverte au clic sur une notification est vérifiée : une charge utile ne peut pas rediriger hors du site.
 
 ## CSRF : pourquoi aucun jeton
 

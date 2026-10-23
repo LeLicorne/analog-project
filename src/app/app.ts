@@ -10,15 +10,17 @@ import {
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '@app/core/auth/auth.service';
+import { PwaService } from '@app/core/pwa/pwa.service';
 import { SITE_NAME } from '@app/core/seo/site';
 import { CloudSyncService } from '@app/core/sync/cloud-sync.service';
 import { AccountMenuComponent } from '@app/features/account/account-menu.component';
+import { PwaBannerComponent } from '@app/features/pwa/pwa-banner.component';
 import { THEMES } from '@data/themes';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [AccountMenuComponent, RouterLink, RouterOutlet],
+  imports: [AccountMenuComponent, PwaBannerComponent, RouterLink, RouterOutlet],
   template: `
     <a class="skip-link" href="#main">Aller au contenu principal</a>
     <header class="site-header">
@@ -34,6 +36,7 @@ import { THEMES } from '@data/themes';
       </nav>
       <app-account-menu />
     </header>
+    <app-pwa-banner />
     <main id="main" tabindex="-1">
       <router-outlet />
     </main>
@@ -42,6 +45,12 @@ import { THEMES } from '@data/themes';
         {{ siteName }} · un quiz gratuit chaque jour, sans compte et sans limite de temps ·
         <a routerLink="/a-propos">À propos</a> · <a routerLink="/accessibilite">Accessibilité</a> ·
         <a routerLink="/plan-du-site">Plan du site</a>
+        @if (pwa.canInstall()) {
+          ·
+          <button type="button" class="link-button" (click)="install()">
+            Installer l’application
+          </button>
+        }
       </p>
     </footer>
   `,
@@ -50,6 +59,7 @@ export class App {
   protected readonly siteName = SITE_NAME;
   protected readonly themes = THEMES;
 
+  protected readonly pwa = inject(PwaService);
   private readonly auth = inject(AuthService);
 
   constructor() {
@@ -59,6 +69,10 @@ export class App {
       void this.auth.restore();
     });
     this.moveFocusToMainOnNavigation();
+  }
+
+  protected async install(): Promise<void> {
+    await this.pwa.promptInstall();
   }
 
   /** Après chaque changement de page, le focus revient sur le contenu : sinon le clavier reste dans l'ancienne page. */

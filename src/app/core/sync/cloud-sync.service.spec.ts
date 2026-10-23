@@ -135,6 +135,52 @@ describe('CloudSyncService', () => {
     expect(sync.state()).toBe('error');
   });
 
+  it('retente la lecture du compte si elle a échoué (hors ligne à la connexion)', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    firestore.getDoc
+      .mockRejectedValueOnce(new Error('hors ligne'))
+      .mockResolvedValue(remoteSnapshot({ 'web:2026-10-22': result(4) }));
+    const { sync, store } = createSync();
+    authFake.user.set({ uid: 'u1', email: null });
+    await tick();
+    await vi.waitFor(() => {
+      expect(sync.state()).toBe('error');
+    });
+
+    store.record('gaming', DAY, result(2));
+    await tick();
+    await vi.waitFor(() => {
+      expect(Object.keys(store.results())).toContain('web:2026-10-22');
+    });
+    expect(firestore.getDoc).toHaveBeenCalledTimes(2);
+  });
+
+  it('reprend l’envoi au retour du réseau', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    firestore.getDoc.mockResolvedValue(remoteSnapshot({}));
+    const { sync, store } = createSync();
+    authFake.user.set({ uid: 'u1', email: null });
+    await tick();
+    await vi.waitFor(() => {
+      expect(firestore.getDoc).toHaveBeenCalled();
+    });
+
+    firestore.setDoc.mockRejectedValueOnce(new Error('hors ligne'));
+    store.record('web', DAY, result(5));
+    await tick();
+    await vi.waitFor(() => {
+      expect(sync.state()).toBe('error');
+    });
+
+    window.dispatchEvent(new Event('online'));
+    await vi.waitFor(() => {
+      expect(firestore.setDoc).toHaveBeenCalledTimes(2);
+    });
+    await vi.waitFor(() => {
+      expect(sync.state()).toBe('idle');
+    });
+  });
+
   it('flush : vrai sans compte connecté', async () => {
     const { sync } = createSync();
     expect(await sync.flush()).toBe(true);

@@ -53,7 +53,14 @@ export class AuthService {
       this.status.set('signed-out');
       return;
     }
-    await this.listen();
+    try {
+      await this.listen();
+    } catch (error) {
+      // Hors ligne et code Firebase absent du cache : on reste « déconnecté » sans casser la page, l'indice de session est
+      // conservé pour restaurer le compte au prochain démarrage connecté.
+      console.error('Session non restaurée', error);
+      this.status.set('signed-out');
+    }
   }
 
   async signUp(email: string, password: string): Promise<void> {
@@ -89,22 +96,32 @@ export class AuthService {
 
   private listen(): Promise<void> {
     this.listening ??= (async () => {
-      const [auth, { onAuthStateChanged }] = await Promise.all([
-        this.firebase.auth(),
-        import('firebase/auth'),
-      ]);
-      await new Promise<void>((resolve) => {
-        onAuthStateChanged(auth, (user) => {
-          // Les résultats sont déjà dans le compte : à la déconnexion on vide l'appareil, qui peut être partagé.
-          // Fait dans ce callback, au même instant que le changement d'état, pour qu'aucun rechargement ne passe entre les deux.
-          if (this.status() === 'signed-in' && !user) this.progress.clear();
-          this.user.set(user ? { uid: user.uid, email: user.email } : null);
-          this.status.set(user ? 'signed-in' : 'signed-out');
-          writeSessionHint(user !== null);
-          resolve();
-        });
-      });
+      // Un échec (hors ligne) ne doit pas rester mémorisé : la tentative suivante repartira de zéro.
+      try {
+        await this.startListening();
+      } catch (error) {
+        this.listening = undefined;
+        throw error;
+      }
     })();
     return this.listening;
+  }
+
+  private async startListening(): Promise<void> {
+    const [auth, { onAuthStateChanged }] = await Promise.all([
+      this.firebase.auth(),
+      import('firebase/auth'),
+    ]);
+    await new Promise<void>((resolve) => {
+      onAuthStateChanged(auth, (user) => {
+        // Les résultats sont déjà dans le compte : à la déconnexion on vide l'appareil, qui peut être partagé.
+        // Fait dans ce callback, au même instant que le changement d'état, pour qu'aucun rechargement ne passe entre les deux.
+        if (this.status() === 'signed-in' && !user) this.progress.clear();
+        this.user.set(user ? { uid: user.uid, email: user.email } : null);
+        this.status.set(user ? 'signed-in' : 'signed-out');
+        writeSessionHint(user !== null);
+        resolve();
+      });
+    });
   }
 }

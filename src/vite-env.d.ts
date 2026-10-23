@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_USE_FIREBASE_EMULATORS: string;
   /** Adresse publique du site, sans slash final (canoniques, Open Graph, sitemap). */
   readonly VITE_SITE_URL?: string;
+  /** Clé publique Web Push (Console Firebase > Cloud Messaging) : sans elle, les notifications sont masquées. */
+  readonly VITE_FIREBASE_VAPID_KEY?: string;
   /** Adresse de contact affichée sur la page À propos (facultative). */
   readonly VITE_CONTACT_EMAIL?: string;
 }

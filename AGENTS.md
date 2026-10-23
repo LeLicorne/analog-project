@@ -56,6 +56,14 @@ Règles de dépendances (appliquées par ESLint) : `pages → features/shared/co
 - Le serveur n'a que des routes en lecture (`src/server/middleware/request-guard.ts` refuse le reste). Pas de cookie : si un cookie de session est ajouté, prévoir SameSite, HttpOnly, Secure et une protection CSRF.
 - Jamais de secret dans le dépôt (un test le vérifie). La config web Firebase n'est pas un secret, une clé privée ou un jeton serveur l'est.
 
+## PWA (détails dans `docs/pwa.md`)
+
+- `public/sw.js` est du JavaScript classique, sans import externe (CSP). Il ne doit jamais intercepter Firebase, `/robots.txt`, `/sitemap.xml`, `/llms.txt` ni `/api/`. Tout changement de stratégie se teste dans `e2e/pwa.spec.ts`.
+- Le plugin `assetManifest` (vite.config.ts) alimente le précache : ne pas le retirer, sans lui le hors-ligne ne couvre que les pages déjà visitées.
+- Notifications : API FID (`register`, `onRegistered`), jamais `getToken` (déprécié). Pas de service worker Firebase (il importerait des scripts externes, interdits par la CSP). Fonction masquée sans `VITE_FIREBASE_VAPID_KEY`.
+- Tout écouteur ajouté sur `window` doit être retiré à la destruction du service (`DestroyRef`).
+- Les règles Firestore ne sont pas déployées automatiquement : après toute modification, `bunx firebase deploy --only firestore:rules`.
+
 ## Pièges connus (détails dans `docs/mesures.md`)
 
 - `afterNextRender` s'exécute aussi côté serveur : tester `isPlatformBrowser` avant de poser un drapeau « navigateur ».

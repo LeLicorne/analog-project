@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ProgressStore } from '@app/core/progress/progress.store';
 import { usePageSeo } from '@app/core/seo/seo.service';
 import { SITE_URL } from '@app/core/seo/site';
+import { ReminderToggleComponent } from '@app/features/reminders/reminder-toggle.component';
 import { ThemeCardsComponent } from '@app/features/themes/theme-cards.component';
 import { FAQ } from '@data/faq';
 import { faqPage, graph, organization, webSite } from '@data/seo/json-ld';
@@ -11,7 +12,7 @@ import { homeMeta } from '@data/seo/page-meta';
 @Component({
   selector: 'app-home-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ThemeCardsComponent],
+  imports: [ReminderToggleComponent, ThemeCardsComponent],
   template: `
     <h1>Quizz du jour</h1>
     <p class="lead">
@@ -26,6 +27,8 @@ import { homeMeta } from '@data/seo/page-meta';
     }
     <h2>Les quiz d’aujourd’hui</h2>
     <app-theme-cards />
+
+    <app-reminder-toggle />
 
     <section class="faq" aria-labelledby="faq-title">
       <h2 id="faq-title">Questions fréquentes</h2>

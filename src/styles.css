@@ -635,3 +635,36 @@ a:hover {
   border-left: 4px solid var(--ko-border);
   background: var(--ko-bg);
 }
+
+/* Bannières d'état (hors ligne, mise à jour) */
+.banners:empty {
+  display: none;
+}
+
+.banner {
+  margin: 0;
+  padding: 0.6rem 1rem;
+  border-bottom: 2px solid var(--border);
+  background: var(--accent);
+  color: var(--on-accent);
+  text-align: center;
+}
+
+.banner .btn {
+  margin-left: 0.5rem;
+  background: var(--on-accent);
+  color: var(--accent);
+  border-color: var(--on-accent);
+}
+
+.reminders {
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface);
+}
+
+.reminders h2 {
+  margin-top: 0;
+}

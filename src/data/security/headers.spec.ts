@@ -26,12 +26,15 @@ describe('Content-Security-Policy', () => {
     expect(directive(csp, 'form-action')).toEqual(["'self'"]);
   });
 
-  it('limite les connexions au site et aux seuls services Firebase utilisés', () => {
+  it('limite les connexions au site et aux seuls services Firebase utilisés (compte, base, notifications)', () => {
     expect(directive(csp, 'connect-src')).toEqual([
       "'self'",
       'https://identitytoolkit.googleapis.com',
       'https://securetoken.googleapis.com',
       'https://firestore.googleapis.com',
+      'https://fcmregistrations.googleapis.com',
+      'https://fcm.googleapis.com',
+      'https://firebaseinstallations.googleapis.com',
     ]);
   });
 

@@ -5,12 +5,13 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
-    // Seuls `results` (map « thème:date » -> résultat) et `updatedAt` sont autorisés.
-    // Les règles ne peuvent pas itérer sur une map : la taille est bornée, le format fin est validé côté client (Zod).
+    // Seuls `results` (map « thème:date » -> résultat), `pushTokens` (map « identifiant d'appareil » -> jeton de notification)
+    // et `updatedAt` sont autorisés. Les règles ne peuvent pas itérer sur une map : les tailles sont bornées, le format fin
+    // est validé côté client (`parseResults`). Une écriture partielle (fusion) ne contient que les champs qu'elle modifie.
     function isValidProfile(data) {
-      return data.keys().hasOnly(['results', 'updatedAt'])
-        && data.results is map
-        && data.results.size() <= 5000
+      return data.keys().hasOnly(['results', 'pushTokens', 'updatedAt'])
+        && (!('results' in data) || (data.results is map && data.results.size() <= 5000))
+        && (!('pushTokens' in data) || (data.pushTokens is map && data.pushTokens.size() <= 10))
         && data.updatedAt == request.time;
     }
 

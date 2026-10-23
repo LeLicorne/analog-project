@@ -16,6 +16,8 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // Service workers bloqués par défaut : seul `e2e/pwa.spec.ts` les active, les autres tests restent indépendants du cache.
+    serviceWorkers: 'block',
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },

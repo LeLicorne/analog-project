@@ -77,6 +77,37 @@ describe('AuthService', () => {
     expect(localStorage.getItem(HINT_KEY)).toBeNull();
   });
 
+  it('hors ligne sans code Firebase en cache : reste déconnecté sans casser la page, et garde l’indice', async () => {
+    localStorage.setItem(HINT_KEY, '1');
+    authLoader.mockRejectedValue(new Error('Failed to fetch dynamically imported module'));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const auth = createAuth();
+    await auth.restore();
+    expect(auth.status()).toBe('signed-out');
+    expect(localStorage.getItem(HINT_KEY)).toBe('1');
+  });
+
+  it('retente après un échec de chargement : l’échec n’est pas mémorisé', async () => {
+    localStorage.setItem(HINT_KEY, '1');
+    firebaseAuth.currentUser = { uid: 'u1', email: 'a@b.fr' };
+    // L'échec arrive après le chargement du module Firebase, comme une coupure réseau pendant l'initialisation.
+    authLoader.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) =>
+          setTimeout(() => {
+            reject(new Error('hors ligne'));
+          }, 10),
+        ),
+    );
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const auth = createAuth();
+    await auth.restore();
+    expect(auth.status()).toBe('signed-out');
+
+    await auth.restore();
+    expect(auth.status()).toBe('signed-in');
+  });
+
   it('connexion : appelle Firebase et mémorise la session', async () => {
     firebaseAuth.signIn.mockImplementation(() => {
       firebaseAuth.listener?.({ uid: 'u1', email: 'a@b.fr' });
