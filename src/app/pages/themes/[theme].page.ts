@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { usePageSeo } from '@app/core/seo/seo.service';
-import { SITE_URL } from '@app/core/seo/site';
+import { AUTHOR, SITE_URL } from '@app/core/seo/site';
 import { BreadcrumbComponent } from '@app/shared/breadcrumb.component';
 import { NotFoundComponent } from '@app/shared/not-found.component';
 import { archiveDates } from '@data/archive';
@@ -81,7 +81,7 @@ export default class ThemePage {
         path,
         jsonLd: [
           graph(
-            organization(SITE_URL),
+            organization(SITE_URL, AUTHOR),
             collectionPage({
               siteUrl: SITE_URL,
               path,

@@ -3,6 +3,7 @@ import type { FaqEntry } from '../faq';
 import type { IsoDate, Question, Theme } from '../quiz.types';
 import { correctAnswerLabel } from '../scoring';
 
+import type { Author } from './author';
 import { SITE_NAME } from './page-meta';
 
 export type JsonLd = Readonly<Record<string, unknown>>;
@@ -18,13 +19,25 @@ export function graph(...nodes: readonly JsonLd[]): JsonLd {
   return { '@context': CONTEXT, '@graph': nodes };
 }
 
-export function organization(siteUrl: string): JsonLd {
+/** L'éditeur du site. L'auteur (fondateur, avec ses profils publics) n'est décrit que s'il est configuré et affiché sur la page À propos. */
+export function organization(siteUrl: string, author: Author | null = null): JsonLd {
   return {
     '@type': 'Organization',
     '@id': `${siteUrl}/#organization`,
     name: SITE_NAME,
     url: siteUrl,
     logo: `${siteUrl}/og-image.png`,
+    ...(author
+      ? {
+          founder: {
+            '@type': 'Person',
+            '@id': `${siteUrl}/#author`,
+            name: author.name,
+            url: `${siteUrl}/a-propos`,
+            ...(author.sameAs.length > 0 ? { sameAs: author.sameAs } : {}),
+          },
+        }
+      : {}),
   };
 }
 

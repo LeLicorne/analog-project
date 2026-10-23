@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { ProgressStore } from '@app/core/progress/progress.store';
 import { usePageSeo } from '@app/core/seo/seo.service';
-import { SITE_URL } from '@app/core/seo/site';
+import { AUTHOR, SITE_URL } from '@app/core/seo/site';
 import { ReminderToggleComponent } from '@app/features/reminders/reminder-toggle.component';
 import { ThemeCardsComponent } from '@app/features/themes/theme-cards.component';
 import { FAQ } from '@data/faq';
@@ -47,7 +47,7 @@ export default class HomePage {
     usePageSeo(() => ({
       ...homeMeta(),
       path: '/',
-      jsonLd: [graph(organization(SITE_URL), webSite(SITE_URL), faqPage(FAQ))],
+      jsonLd: [graph(organization(SITE_URL, AUTHOR), webSite(SITE_URL), faqPage(FAQ))],
     }));
   }
 }

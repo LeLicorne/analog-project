@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { usePageSeo } from '@app/core/seo/seo.service';
-import { CONTACT_EMAIL, SITE_URL } from '@app/core/seo/site';
+import { CONTACT_EMAIL, AUTHOR, SITE_URL } from '@app/core/seo/site';
 import { BreadcrumbComponent } from '@app/shared/breadcrumb.component';
 import { aboutPage, breadcrumbs, graph, organization } from '@data/seo/json-ld';
 import { aboutMeta } from '@data/seo/page-meta';
@@ -19,11 +19,26 @@ import { aboutMeta } from '@data/seo/page-meta';
       histoire, géographie, sciences, web et code, gaming.
     </p>
 
+    @if (author) {
+      <h2>Qui édite ce site</h2>
+      <p>
+        Quizz du jour est édité par <strong>{{ author.name }}</strong
+        >.
+        @if (author.sameAs.length > 0) {
+          Profils publics :
+          @for (profile of author.sameAs; track profile) {
+            <a [href]="profile" rel="me noopener noreferrer" target="_blank">{{ profile }}</a
+            >{{ $last ? '.' : ', ' }}
+          }
+        }
+      </p>
+    }
+
     <h2>Comment les quiz sont conçus</h2>
     <p>
       Chaque question a une seule bonne réponse, une explication de une à trois phrases et un lien
-      vers une source (Wikipédia, MDN Web Docs, W3C). Les liens sont contrôlés automatiquement : un
-      lien cassé fait échouer les vérifications avant la mise en ligne.
+      vers une source (Wikipédia, MDN Web Docs, W3C). Un script contrôle automatiquement ces liens
+      et signale ceux qui ne répondent plus.
     </p>
     <p>
       Les questions portent sur des faits stables et vérifiables. Nous évitons les classements, les
@@ -77,6 +92,7 @@ import { aboutMeta } from '@data/seo/page-meta';
 })
 export default class AboutPage {
   protected readonly contactEmail = CONTACT_EMAIL;
+  protected readonly author = AUTHOR;
 
   constructor() {
     usePageSeo(() => ({
@@ -84,7 +100,7 @@ export default class AboutPage {
       path: '/a-propos',
       jsonLd: [
         graph(
-          organization(SITE_URL),
+          organization(SITE_URL, AUTHOR),
           aboutPage(SITE_URL),
           breadcrumbs(SITE_URL, [
             { name: 'Accueil', path: '/' },

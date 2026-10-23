@@ -13,6 +13,10 @@ interface ImportMetaEnv {
   readonly VITE_SITE_URL?: string;
   /** Clé publique Web Push (Console Firebase > Cloud Messaging) : sans elle, les notifications sont masquées. */
   readonly VITE_FIREBASE_VAPID_KEY?: string;
+  /** Auteur du site (données structurées Person + page À propos). Sans nom, aucun auteur n'est publié. */
+  readonly VITE_AUTHOR_NAME?: string;
+  readonly VITE_AUTHOR_GITHUB?: string;
+  readonly VITE_AUTHOR_LINKEDIN?: string;
   /** Adresse de contact affichée sur la page À propos (facultative). */
   readonly VITE_CONTACT_EMAIL?: string;
 }

@@ -5,7 +5,7 @@ import { QuizCorrigeComponent } from './quiz-corrige.component';
 import { QuizPlayerComponent } from './quiz-player.component';
 
 import { usePageSeo } from '@app/core/seo/seo.service';
-import { SITE_URL } from '@app/core/seo/site';
+import { AUTHOR, SITE_URL } from '@app/core/seo/site';
 import { BreadcrumbComponent, type BreadcrumbItem } from '@app/shared/breadcrumb.component';
 import { dailyQuestions, QUESTIONS_PER_QUIZ } from '@data/daily-quiz';
 import { LAUNCH_DATE, addDays, formatDate, formatLongDate, toIsoDate } from '@data/dates';
@@ -122,7 +122,7 @@ export class QuizPageComponent {
         path: this.path(),
         jsonLd: [
           graph(
-            organization(SITE_URL),
+            organization(SITE_URL, AUTHOR),
             quizNode({
               siteUrl: SITE_URL,
               path: this.path(),

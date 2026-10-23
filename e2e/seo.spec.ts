@@ -63,6 +63,38 @@ test.describe('référencement', () => {
     await context.close();
   });
 
+  // Équivalent automatisé de `curl -A "GPTBot" https://site` : ce que reçoit réellement un robot IA, sans JavaScript.
+  const AI_CRAWLERS: Record<string, string> = {
+    GPTBot:
+      'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; GPTBot/1.2; +https://openai.com/gptbot',
+    'OAI-SearchBot':
+      'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko); compatible; OAI-SearchBot/1.0',
+    ClaudeBot:
+      'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)',
+    'Claude-SearchBot':
+      'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Claude-SearchBot/1.0)',
+    PerplexityBot:
+      'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; PerplexityBot/1.0)',
+    Googlebot: 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+  };
+
+  for (const [bot, userAgent] of Object.entries(AI_CRAWLERS)) {
+    test(`${bot} reçoit du HTML complet : titre, h1 et contenu, sans exécuter de JavaScript`, async ({
+      request,
+    }) => {
+      for (const path of ['/', '/themes/histoire', '/quiz/histoire']) {
+        const response = await request.get(path, { headers: { 'User-Agent': userAgent } });
+        expect(response.status(), `${bot} ${path}`).toBe(200);
+        const html = await response.text();
+        expect(html).toMatch(/<title>[^<]{10,}<\/title>/);
+        expect(html).toMatch(/<h1[^>]*>[\s\S]*?<\/h1>/);
+        expect(html).toContain('rel="canonical"');
+        expect(html).toContain('application/ld+json');
+        expect(html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').length).toBeGreaterThan(500);
+      }
+    });
+  }
+
   test('la FAQ affichée est celle des données structurées', async ({ page }) => {
     await page.goto('/');
     const graphs = await readJsonLd(page);

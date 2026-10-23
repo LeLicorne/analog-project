@@ -3,12 +3,29 @@ import { loadQuestions } from '../question-loader';
 import type { IsoDate } from '../quiz.types';
 import { getTheme } from '../themes';
 
-import { breadcrumbs, faqPage, graph, questionNode, quizNode } from './json-ld';
+import { breadcrumbs, faqPage, graph, organization, questionNode, quizNode } from './json-ld';
 
 const SITE = 'https://quizz.example';
 const date = '2026-10-23' as IsoDate;
 
 describe('données structurées', () => {
+  it('décrit l’auteur comme fondateur, avec ses profils publics, seulement s’il est configuré', () => {
+    const withAuthor = organization(SITE, {
+      name: 'Ada Lovelace',
+      sameAs: ['https://github.com/ada', 'https://www.linkedin.com/in/ada'],
+    }) as { founder?: { '@type': string; name: string; sameAs?: string[] } };
+    expect(withAuthor.founder?.['@type']).toBe('Person');
+    expect(withAuthor.founder?.name).toBe('Ada Lovelace');
+    expect(withAuthor.founder?.sameAs).toEqual([
+      'https://github.com/ada',
+      'https://www.linkedin.com/in/ada',
+    ]);
+
+    expect(organization(SITE)).not.toHaveProperty('founder');
+    const noProfile = organization(SITE, { name: 'Ada', sameAs: [] }) as { founder: object };
+    expect(noProfile.founder).not.toHaveProperty('sameAs');
+  });
+
   it('encapsule les nœuds dans un @graph schema.org', () => {
     const data = graph({ '@type': 'Thing' });
     expect(data['@context']).toBe('https://schema.org');

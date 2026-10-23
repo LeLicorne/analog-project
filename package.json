@@ -24,7 +24,8 @@
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test",
     "prepare": "simple-git-hooks",
     "test:rules": "firebase emulators:exec --only firestore --project demo-quizz-du-jour \"vitest run --config vitest.rules.config.ts\"",
-    "build:e2e": "NODE_ENV=production VITE_USE_FIREBASE_EMULATORS=true vite build"
+    "build:e2e": "NODE_ENV=production VITE_USE_FIREBASE_EMULATORS=true vite build",
+    "check:links": "bun scripts/check-source-urls.ts"
   },
   "private": true,
   "dependencies": {

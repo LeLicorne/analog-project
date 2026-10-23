@@ -23,7 +23,7 @@ export const FAQ: readonly FaqEntry[] = [
   {
     question: 'D’où viennent les réponses ?',
     answer:
-      'Chaque question est accompagnée d’une explication et d’un lien vers une source (Wikipédia, MDN, W3C). Les liens sont vérifiés automatiquement avant chaque mise en ligne.',
+      'Chaque question est accompagnée d’une explication et d’un lien vers une source (Wikipédia, MDN, W3C). Un script contrôle automatiquement ces liens.',
   },
   {
     question: 'Y a-t-il une limite de temps ?',

@@ -12,9 +12,20 @@ Conventions du framework : `node_modules/@analogjs/platform/AGENTS.md` (à lire 
 | `bun run lint:fix` / `bun run format` | Corrections automatiques                                                                            |
 | `bun run test:coverage`               | Vitest avec seuils de couverture                                                                    |
 | `bun run test:rules`                  | Règles Firestore sur l'émulateur (Java requis), à relancer à chaque changement de `firestore.rules` |
+| `bun run check:links`                 | Vérifie que les 346 liens sources répondent (réseau, environ 1 minute, hors `check`)                |
 | `bun run test:e2e`                    | Playwright (parcours + axe-core) sur les émulateurs Firebase, build puis preview                    |
 
 **Définition de « terminé » : `bun run check` est vert**, et `bun run test:e2e` pour toute page ou tout parcours touché.
+
+## Travailler avec un agent sur ce dépôt
+
+- Lire ce fichier, puis le document du thème concerné dans `docs/` (`securite.md`, `accessibilite.md`, `pwa.md`, `performance.md`, `tests.md`) avant de modifier.
+- **Skills** (`.claude/skills/`) : `quizz-new-page` pour créer une page, `quizz-a11y-review`, `quizz-seo-geo-check` et `quizz-security-review` pour relire un changement. Les utiliser avant de déclarer un travail terminé.
+- **Relire ce qu'on génère** : chaque ligne doit pouvoir être expliquée. Un test qui n'a jamais échoué ne prouve rien : vérifier qu'il échoue quand le code est faux.
+- **Ne pas se fier à une déclaration** (« aucun doute », « vérifié ») : exiger la commande ou le test qui le prouve. Ne jamais écrire dans une page publique une affirmation qu'aucun contrôle ne soutient.
+- **Modifications par script** : vérifier que le remplacement a bien eu lieu (le texte a pu être reformaté par Prettier).
+- **Une seule exécution** par suite de tests et par vérification. En cas d'échec : lire l'erreur, corriger à la source, relancer une fois. Jamais de boucle, jamais de `skip`, jamais de règle désactivée pour faire passer un contrôle.
+- Journal des erreurs déjà commises par les agents sur ce projet : `docs/ia-journal.md`.
 
 ## Structure
 

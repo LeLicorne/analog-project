@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { usePageSeo } from '@app/core/seo/seo.service';
-import { CONTACT_EMAIL, SITE_URL } from '@app/core/seo/site';
+import { CONTACT_EMAIL, AUTHOR, SITE_URL } from '@app/core/seo/site';
 import { BreadcrumbComponent } from '@app/shared/breadcrumb.component';
 import { breadcrumbs, graph, organization } from '@data/seo/json-ld';
 import { accessibilityMeta } from '@data/seo/page-meta';
@@ -112,7 +112,7 @@ export default class AccessibilityPage {
       path: '/accessibilite',
       jsonLd: [
         graph(
-          organization(SITE_URL),
+          organization(SITE_URL, AUTHOR),
           breadcrumbs(SITE_URL, [
             { name: 'Accueil', path: '/' },
             { name: 'Accessibilité', path: '/accessibilite' },
