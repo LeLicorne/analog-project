@@ -1,7 +1,7 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-const ROUTES = ['/blog'];
+const ROUTES = ['/', '/themes/histoire', '/quiz/histoire'];
 
 for (const route of ROUTES) {
   test(`${route} n'a aucune violation axe (WCAG 2.2 AA)`, async ({ page }) => {

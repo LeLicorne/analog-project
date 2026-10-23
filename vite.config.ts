@@ -4,6 +4,21 @@ import analog from '@analogjs/platform';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
+import { archiveDates } from './src/data/archive';
+import { toIsoDate } from './src/data/dates';
+import { THEME_SLUGS } from './src/data/quiz.types';
+
+/** Pages statiques : une fiche par thème et une page de corrigé par quiz passé. */
+function prerenderRoutes(): Promise<string[]> {
+  const dates = archiveDates(toIsoDate(new Date()));
+  return Promise.resolve(
+    THEME_SLUGS.flatMap((theme) => [
+      `/themes/${theme}`,
+      ...dates.map((date) => `/quiz/${theme}/${date}`),
+    ]),
+  );
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(() => ({
   build: {
@@ -11,14 +26,12 @@ export default defineConfig(() => ({
   },
   resolve: {
     mainFields: ['module'],
+    tsconfigPaths: true,
   },
   plugins: [
     analog({
-      content: {
-        highlighter: 'shiki',
-      },
       prerender: {
-        routes: ['/blog', '/blog/2022-12-27-my-first-post'],
+        routes: prerenderRoutes,
       },
     }),
     tailwindcss(),
