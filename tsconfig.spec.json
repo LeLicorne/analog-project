@@ -7,5 +7,5 @@
     "types": ["node", "vitest/globals"]
   },
   "files": ["src/test-setup.ts"],
-  "include": ["src/**/*.spec.ts", "src/**/*.ts"]
+  "include": ["src/**/*.spec.ts", "src/**/*.ts", "e2e/**/*.ts", "playwright.config.ts"]
 }

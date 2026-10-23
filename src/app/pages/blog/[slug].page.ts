@@ -1,18 +1,18 @@
-import { Component } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
 import { injectContent, MarkdownComponent } from '@analogjs/content';
+import { AsyncPipe } from '@angular/common';
+import { Component } from '@angular/core';
 
-import PostAttributes from '../../post-attributes';
+import type PostAttributes from '../../post-attributes';
 
 @Component({
   selector: 'app-blog-post',
   imports: [AsyncPipe, MarkdownComponent],
   template: `
     @if (post$ | async; as post) {
-    <article>
-      <img class="post__image" [src]="post.attributes.coverImage" />
-      <analog-markdown [content]="post.content" />
-    </article>
+      <article>
+        <img class="post__image" [src]="post.attributes.coverImage" alt="" />
+        <analog-markdown [content]="post.content" />
+      </article>
     }
   `,
   styles: `

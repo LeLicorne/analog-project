@@ -1,8 +1,8 @@
+import { injectContentFiles } from '@analogjs/content';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { injectContentFiles } from '@analogjs/content';
 
-import PostAttributes from '../../post-attributes';
+import type PostAttributes from '../../post-attributes';
 
 @Component({
   selector: 'app-blog',
@@ -11,10 +11,10 @@ import PostAttributes from '../../post-attributes';
     <h1>Blog Archive</h1>
 
     @for (post of posts; track post.attributes.slug) {
-    <a [routerLink]="['/blog/', post.attributes.slug]">
-      <h2 class="post__title">{{ post.attributes.title }}</h2>
-      <p class="post__desc">{{ post.attributes.description }}</p>
-    </a>
+      <a [routerLink]="['/blog/', post.attributes.slug]">
+        <h2 class="post__title">{{ post.attributes.title }}</h2>
+        <p class="post__desc">{{ post.attributes.description }}</p>
+      </a>
     }
   `,
   styles: `

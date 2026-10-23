@@ -3,6 +3,11 @@
   "compilerOptions": {
     "ignoreDeprecations": "6.0",
     "baseUrl": "./",
+    "paths": {
+      "@app/*": ["src/app/*"],
+      "@content/*": ["src/content/*"],
+      "@data/*": ["src/data/*"]
+    },
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -10,6 +15,11 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
     "sourceMap": true,
     "declaration": false,
     "downlevelIteration": true,
@@ -29,7 +39,5 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   },
-  "references": [
-    { "path": "tsconfig.spec.json" }
-  ]
+  "references": [{ "path": "tsconfig.spec.json" }]
 }

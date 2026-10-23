@@ -1,11 +1,53 @@
 # AGENTS.md
 
-This is an [AnalogJS](https://analogjs.org) app — an Angular meta-framework powered by Vite.
+App **AnalogJS** (méta-framework Angular, Vite) en TypeScript, exécutée avec **Bun**. Projet : « Quizz du jour » (quiz quotidien, PWA).
+Conventions du framework : `node_modules/@analogjs/platform/AGENTS.md` (à lire avant de toucher au routing, aux routes serveur ou au contenu).
 
-Framework conventions for AI assistants — file-based routing, server/API routes, data fetching, content routes, and modern Angular usage — ship with the framework and are installed alongside your dependencies. Read them here:
+## Commandes (toujours avec `bun`)
 
-- `node_modules/@analogjs/platform/AGENTS.md`
+| Commande                              | Rôle                                                                    |
+| ------------------------------------- | ----------------------------------------------------------------------- |
+| `bun run dev`                         | Serveur de dev                                                          |
+| `bun run check`                       | **Point d'entrée unique** : format + lint + typecheck + tests unitaires |
+| `bun run lint:fix` / `bun run format` | Corrections automatiques                                                |
+| `bun run test:coverage`               | Vitest avec seuils de couverture                                        |
+| `bun run test:e2e`                    | Playwright (parcours + axe-core), build puis preview                    |
 
-Reading from `@analogjs/platform` keeps the guidance in sync with the installed version instead of drifting from a copy checked into the project.
+**Définition de « terminé » : `bun run check` est vert**, et `bun run test:e2e` pour toute page ou tout parcours touché.
 
-Full documentation: https://analogjs.org/docs · LLM-friendly index: https://analogjs.org/llms.txt
+## Structure
+
+```
+src/app/pages/      routes (fichiers *.page.ts, export default), minces : elles assemblent des features
+src/app/features/   une feature = un dossier autonome (composants, services, état)
+src/app/shared/     UI et utilitaires génériques, sans logique métier
+src/app/core/       services transverses (auth, firebase, config, seo)
+src/data/           types et données de quiz (pur TypeScript, sans Angular)
+src/content/        markdown (explications, pages éditoriales)
+src/server/         routes Nitro (rendu, headers de sécurité), aucune logique métier
+e2e/                tests Playwright
+```
+
+Règles de dépendances (appliquées par ESLint) : `pages → features/shared/core/data` ; une feature n'importe pas une autre feature ; `shared`, `core` et `data` n'importent jamais `features` ni `pages`. Alias : `@app/*`, `@data/*`, `@content/*`.
+
+## Règles de code
+
+- Angular moderne : composants standalone, `inject()`, signals, `@if/@for/@switch`, `ChangeDetectionStrategy.OnPush`.
+- TypeScript strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`). Pas de `any`, pas de `!` hors tests, types de retour explicites. `import type` pour les types.
+- Préfixe `app-` pour les sélecteurs. Pas de `console.log`.
+- Tests colocalisés `*.spec.ts` (Vitest). **Tout code généré doit être relu, compris et testé** : pas de logique métier sans test.
+- Pas de `innerHTML` ni `bypassSecurityTrust*`. Entrées externes validées avec Zod.
+- Secrets : jamais dans le dépôt. `.env` ignoré, `.env.example` à jour.
+
+## Accessibilité, SEO, GEO (priorité du projet)
+
+- WCAG 2.2 AA minimum et RGAA 4 : HTML sémantique d'abord, ARIA seulement si nécessaire, focus visible, contraste ≥ 4.5:1, rien n'est transmis par la couleur seule, `prefers-reduced-motion` respecté, aucune limite de temps.
+- Toute nouvelle page : `title` unique, meta description, canonical, un seul `h1`, JSON-LD adapté, contenu présent dans le HTML rendu côté serveur (SSG/SSR).
+- Chaque page ajoutée est ajoutée à `e2e/a11y.spec.ts` et aux routes prérendues de `vite.config.ts`.
+- Pas de `llms.txt` : le GEO repose sur du contenu rendu côté serveur, factuel, sourcé, daté, avec données structurées.
+
+## À ne pas faire
+
+- Ne pas désactiver une règle ESLint ou TypeScript pour faire passer un check : corriger la cause.
+- Ne pas ajouter de dépendance sans justification.
+- Ne pas commiter, pousser ni déployer sans demande explicite.
