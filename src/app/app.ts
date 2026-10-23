@@ -40,7 +40,8 @@ import { THEMES } from '@data/themes';
     <footer class="site-footer">
       <p>
         {{ siteName }} · un quiz gratuit chaque jour, sans compte et sans limite de temps ·
-        <a routerLink="/a-propos">À propos</a>
+        <a routerLink="/a-propos">À propos</a> · <a routerLink="/accessibilite">Accessibilité</a> ·
+        <a routerLink="/plan-du-site">Plan du site</a>
       </p>
     </footer>
   `,

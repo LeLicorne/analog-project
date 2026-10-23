@@ -4,11 +4,13 @@ import { THEMES } from '../themes';
 
 import {
   aboutMeta,
+  accessibilityMeta,
   accountMeta,
   archiveMeta,
   fitTitle,
   homeMeta,
   notFoundMeta,
+  siteMapMeta,
   themeMeta,
   todayMeta,
   type PageMeta,
@@ -25,6 +27,8 @@ function allMeta(): { label: string; meta: PageMeta }[] {
   return [
     { label: 'home', meta: homeMeta() },
     { label: 'about', meta: aboutMeta() },
+    { label: 'site-map', meta: siteMapMeta() },
+    { label: 'accessibility', meta: accessibilityMeta() },
     { label: 'login', meta: accountMeta('login') },
     { label: 'signup', meta: accountMeta('signup') },
     { label: 'not-found', meta: notFoundMeta() },

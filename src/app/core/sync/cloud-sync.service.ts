@@ -2,7 +2,7 @@ import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 
 import { AuthService } from '@app/core/auth/auth.service';
 import { FirebaseService } from '@app/core/firebase/firebase.service';
-import { ProgressStore, resultsSchema, type QuizResults } from '@app/core/progress/progress.store';
+import { ProgressStore, parseResults, type QuizResults } from '@app/core/progress/progress.store';
 
 export type SyncState = 'idle' | 'syncing' | 'error';
 
@@ -79,8 +79,7 @@ export class CloudSyncService {
       import('firebase/firestore'),
     ]);
     const snapshot = await getDoc(doc(db, 'users', uid));
-    const parsed = resultsSchema.safeParse(snapshot.get('results') ?? {});
-    const remote = parsed.success ? parsed.data : {};
+    const remote = parseResults(snapshot.get('results') ?? {}) ?? {};
 
     this.syncedKeys.clear();
     Object.keys(remote).forEach((key) => this.syncedKeys.add(key));

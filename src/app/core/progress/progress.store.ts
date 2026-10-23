@@ -1,6 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, afterNextRender, computed, inject, signal } from '@angular/core';
-import { z } from 'zod';
 
 import { isIsoDate, toIsoDate } from '@data/dates';
 import type { IsoDate, ThemeSlug } from '@data/quiz.types';
@@ -8,23 +7,42 @@ import { computeStreak } from '@data/streak';
 
 const STORAGE_KEY = 'quizz-du-jour:progress:v1';
 
-const quizResultSchema = z.object({
-  score: z.number().int().min(0),
-  answers: z.array(z.union([z.number().int(), z.boolean()])),
-});
+export interface QuizResult {
+  readonly score: number;
+  readonly answers: readonly (number | boolean)[];
+}
 
-/** Format commun au stockage local et au document Firestore `users/{uid}`. */
-export const resultsSchema = z.record(z.string(), quizResultSchema);
-
-const storedSchema = z.object({
-  version: z.literal(1),
-  results: resultsSchema,
-});
-
-type StoredState = z.infer<typeof storedSchema>;
-
-export type QuizResult = z.infer<typeof quizResultSchema>;
 export type QuizResults = Readonly<Record<string, QuizResult>>;
+
+interface StoredState {
+  readonly version: 1;
+  readonly results: QuizResults;
+}
+
+function isQuizResult(value: unknown): value is QuizResult {
+  if (typeof value !== 'object' || value === null) return false;
+  const { score, answers } = value as { score?: unknown; answers?: unknown };
+  return (
+    typeof score === 'number' &&
+    Number.isInteger(score) &&
+    score >= 0 &&
+    Array.isArray(answers) &&
+    answers.every(
+      (answer) =>
+        typeof answer === 'boolean' || (typeof answer === 'number' && Number.isInteger(answer)),
+    )
+  );
+}
+
+/**
+ * Valide les résultats lus dans le stockage local ou dans Firestore (données non fiables).
+ * Écrit à la main plutôt qu'avec Zod : Zod pesait ~25 ko compressés dans le chemin critique de chaque page.
+ */
+export function parseResults(value: unknown): QuizResults | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const entries = Object.entries(value);
+  return entries.every(([, result]) => isQuizResult(result)) ? (value as QuizResults) : null;
+}
 
 const EMPTY_STATE: StoredState = { version: 1, results: {} };
 
@@ -36,8 +54,9 @@ function readStorage(): StoredState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return EMPTY_STATE;
-    const parsed = storedSchema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : EMPTY_STATE;
+    const stored = JSON.parse(raw) as { version?: unknown; results?: unknown };
+    const results = stored.version === 1 ? parseResults(stored.results) : null;
+    return results ? { version: 1, results } : EMPTY_STATE;
   } catch {
     return EMPTY_STATE;
   }

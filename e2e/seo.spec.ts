@@ -16,6 +16,8 @@ test.describe('référencement', () => {
   const PAGES = [
     { path: '/', h1: 'Quizz du jour' },
     { path: '/a-propos', h1: 'À propos de Quizz du jour' },
+    { path: '/accessibilite', h1: 'Accessibilité' },
+    { path: '/plan-du-site', h1: 'Plan du site' },
     { path: '/themes/histoire', h1: 'Quiz Histoire' },
     { path: '/quiz/histoire', h1: 'Quiz Histoire du jour' },
   ];

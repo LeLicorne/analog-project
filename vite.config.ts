@@ -14,6 +14,8 @@ function prerenderRoutes(): Promise<string[]> {
   return Promise.resolve([
     '/',
     '/a-propos',
+    '/accessibilite',
+    '/plan-du-site',
     ...THEME_SLUGS.flatMap((theme) => [
       `/themes/${theme}`,
       ...dates.map((date) => `/quiz/${theme}/${date}`),
@@ -35,6 +37,14 @@ export default defineConfig(() => ({
       // Sans `fastCompile`, environ 1 build sur 4 émettait des composants non compilés (« JIT compiler unavailable »),
       // aléatoirement, côté client comme côté serveur. Les templates sont vérifiés par `ngc` dans `bun run typecheck`.
       vite: { fastCompile: true },
+      nitro: {
+        // Fichiers statiques précompressés (gzip + brotli) : le JavaScript passe d'environ 460 ko à moins de 140 ko sur le réseau.
+        compressPublicAssets: { gzip: true, brotli: true },
+        // Les fichiers de /assets portent un hash dans leur nom : ils ne changent jamais, le navigateur peut les garder un an.
+        routeRules: {
+          '/assets/**': { headers: { 'cache-control': 'public, max-age=31536000, immutable' } },
+        },
+      },
       prerender: {
         routes: prerenderRoutes,
       },

@@ -27,6 +27,7 @@ export function buildLlmsTxt(siteUrl: string): string {
     '',
     `- [Accueil](${siteUrl}/): les six quiz du jour et la FAQ.`,
     `- [À propos](${siteUrl}/a-propos): méthode, sources, accessibilité.`,
+    `- [Accessibilité](${siteUrl}/accessibilite): niveau visé WCAG 2.2 AA et RGAA 4, tests réalisés, limites connues.`,
     `- [Plan du site](${siteUrl}/sitemap.xml): tous les quiz passés, avec leur corrigé en clair (une page par thème et par jour, à l'adresse /quiz/<thème>/<AAAA-MM-JJ>).`,
     '',
     '## Questions fréquentes',

@@ -53,6 +53,22 @@ export function aboutMeta(): PageMeta {
   };
 }
 
+export function accessibilityMeta(): PageMeta {
+  return {
+    title: fitTitle('Accessibilité : déclaration et tests'),
+    description:
+      'Niveau visé WCAG 2.2 AA et RGAA 4 : ce qui est mis en œuvre, comment le site est testé, les limites connues et comment signaler un problème.',
+  };
+}
+
+export function siteMapMeta(): PageMeta {
+  return {
+    title: fitTitle('Plan du site : tous les quiz'),
+    description:
+      'Toutes les pages de Quizz du jour : les six thèmes, le quiz du jour de chacun, la méthode, l’accessibilité et le plan du site.',
+  };
+}
+
 export function accountMeta(kind: 'login' | 'signup'): PageMeta {
   return {
     title: fitTitle(kind === 'login' ? 'Se connecter' : 'Créer un compte'),

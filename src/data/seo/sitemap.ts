@@ -22,6 +22,8 @@ export function sitemapEntries(today: IsoDate): SitemapEntry[] {
   return [
     { path: '/', lastmod: today },
     { path: '/a-propos', lastmod: today },
+    { path: '/accessibilite', lastmod: today },
+    { path: '/plan-du-site', lastmod: today },
     ...THEMES.flatMap((theme) => [
       { path: `/themes/${theme.slug}`, lastmod: today },
       { path: `/quiz/${theme.slug}`, lastmod: today },

@@ -10,6 +10,8 @@ describe('sitemap', () => {
   it('contient les pages éditoriales et les 6 thèmes', () => {
     expect(paths).toContain('/');
     expect(paths).toContain('/a-propos');
+    expect(paths).toContain('/accessibilite');
+    expect(paths).toContain('/plan-du-site');
     expect(paths.filter((path) => path.startsWith('/themes/'))).toHaveLength(6);
     expect(paths.filter((path) => /^\/quiz\/[a-z-]+$/.test(path))).toHaveLength(6);
   });

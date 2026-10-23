@@ -1,0 +1,44 @@
+# Accessibilité : WCAG 2.2 AA et RGAA 4
+
+## WCAG et RGAA en deux lignes
+
+- **WCAG** (W3C) est la norme internationale : 4 principes (perceptible, utilisable, compréhensible, robuste), 3 niveaux (A, AA, AAA). Le niveau AA est la cible légale presque partout.
+- **RGAA** est le référentiel français d'application de la loi : 13 thématiques et 106 critères, chacun testé par une méthode précise. Il reprend WCAG 2.1 AA (le RGAA 4.1 est aligné sur WCAG 2.1 ; WCAG 2.2 ajoute des critères comme la taille des cibles et l'authentification accessible).
+- Un site « conforme RGAA » est audité à la main, thématique par thématique. Un outil automatique (axe, Lighthouse) ne couvre qu'environ 30 à 40 % des critères : il trouve les erreurs détectables par un programme, pas les erreurs de sens (un texte alternatif présent mais faux, un ordre de lecture illogique).
+
+## Ce que fait le site, critère par critère
+
+| Thème RGAA               | Mise en œuvre                                                                                                                                                                                                                 | Comment c'est vérifié                                                                                                                              |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Images                | Aucune image porteuse d'information. Les emojis sont décoratifs : `aria-hidden="true"`.                                                                                                                                       | axe (`image-alt`, `aria-hidden-focus`)                                                                                                             |
+| 2. Cadres                | Aucun cadre ni iframe.                                                                                                                                                                                                        | Sans objet                                                                                                                                         |
+| 3. Couleurs              | Une réponse n'est jamais indiquée par la couleur seule : icône (✓ ou ✗) et texte (« Bonne réponse », « Votre réponse »), bordure pleine ou en pointillés. Contraste texte >= 4,5:1, composants >= 3:1, en clair et en sombre. | axe `color-contrast` dans les deux thèmes (`e2e/a11y-modes.spec.ts`) ; contrastes des composants calculés à la main sur les jetons de `styles.css` |
+| 4. Multimédia            | Aucun média.                                                                                                                                                                                                                  | Sans objet                                                                                                                                         |
+| 5. Tableaux              | Aucun tableau de données.                                                                                                                                                                                                     | Sans objet                                                                                                                                         |
+| 6. Liens                 | Intitulés explicites ; les liens externes précisent « (s'ouvre dans un nouvel onglet) » pour les lecteurs d'écran ; liens soulignés dans le texte (pas de couleur seule).                                                     | axe `link-name`, `link-in-text-block`                                                                                                              |
+| 7. Scripts               | Le focus est déplacé après chaque étape du jeu (retour de réponse, question suivante, score) ; erreurs annoncées par `role="alert"` ; après une navigation, le focus revient sur le contenu.                                  | `e2e/quiz.spec.ts` (focus), `e2e/account.spec.ts` (erreurs)                                                                                        |
+| 8. Éléments obligatoires | `lang="fr"`, titre de page unique et pertinent, zoom non bloqué.                                                                                                                                                              | `e2e/seo.spec.ts`, tests unitaires des titres                                                                                                      |
+| 9. Structuration         | Un seul `h1` par page, titres hiérarchisés, repères (`header`, `nav`, `main`, `footer`), listes sémantiques.                                                                                                                  | `e2e/seo.spec.ts`, axe                                                                                                                             |
+| 10. Présentation         | Pas de défilement horizontal à 320 px (zoom 400 %) ; texte lisible avec l'espacement imposé par WCAG 1.4.12 ; focus visible (3 px) ; mouvements supprimés si le système le demande.                                           | `e2e/a11y-modes.spec.ts`                                                                                                                           |
+| 11. Formulaires          | Champs étiquetés, aide visible liée au champ, erreurs liées au champ (`aria-describedby`, `aria-invalid`), `autocomplete` correct, affichage du mot de passe, pas de double saisie.                                           | `e2e/account.spec.ts`                                                                                                                              |
+| 12. Navigation           | Menu des thèmes, plan du site, fil d'Ariane, lien d'évitement.                                                                                                                                                                | `e2e/quiz.spec.ts` (lien d'évitement), `/plan-du-site`                                                                                             |
+| 13. Consultation         | Aucune limite de temps, aucune animation automatique, aucun contenu clignotant.                                                                                                                                               | Par conception                                                                                                                                     |
+
+## Critères WCAG 2.2 ajoutés, et où ils sont traités
+
+- **2.4.11 Focus non masqué** : le focus n'est jamais recouvert (pas de bandeau fixe).
+- **2.5.8 Taille de cible (24 px)** : boutons et radios de 44 px minimum ; liens de navigation avec une zone d'au moins 24 px. Règle axe `target-size` active.
+- **3.3.7 Saisie redondante** : aucun champ de confirmation de mot de passe.
+- **3.3.8 Authentification accessible** : aucun test cognitif ; le collage et les gestionnaires de mots de passe sont autorisés.
+
+## Tests manuels réalisés (23 octobre 2026, par l'éditeur)
+
+- Lecteur d'écran **VoiceOver** (macOS et iOS), navigation au clavier seul, zoom du navigateur et agrandissement du texte.
+- Résultat : aucune anomalie constatée.
+
+## Ce qui n'est PAS vérifié
+
+- Les lecteurs d'écran **NVDA, JAWS et TalkBack** : leurs annonces diffèrent de celles de VoiceOver, notamment pour les groupes de radios et le déplacement du focus.
+- La navigation vocale (Dragon, Contrôle vocal) et les loupes d'écran.
+- Aucun audit tiers : le site ne peut pas revendiquer une conformité certifiée.
+- Aucun test en zoom sur appareil réel de petite taille au-delà de VoiceOver sur iOS : le reflow à 320 px est vérifié par émulation.

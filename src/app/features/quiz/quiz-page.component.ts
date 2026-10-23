@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { QuizCorrigeComponent } from './quiz-corrige.component';
@@ -9,8 +9,7 @@ import { SITE_URL } from '@app/core/seo/site';
 import { BreadcrumbComponent, type BreadcrumbItem } from '@app/shared/breadcrumb.component';
 import { dailyQuestions, QUESTIONS_PER_QUIZ } from '@data/daily-quiz';
 import { LAUNCH_DATE, addDays, formatDate, formatLongDate, toIsoDate } from '@data/dates';
-import { loadQuestions } from '@data/question-loader';
-import type { IsoDate, ThemeSlug } from '@data/quiz.types';
+import type { IsoDate, Question, ThemeSlug } from '@data/quiz.types';
 import { breadcrumbs, graph, organization, quizNode } from '@data/seo/json-ld';
 import { archiveMeta, todayMeta } from '@data/seo/page-meta';
 import { getTheme } from '@data/themes';
@@ -43,45 +42,41 @@ import { getTheme } from '@data/themes';
       </p>
     }
 
-    @if (quiz.hasValue()) {
-      @if (withCorrige()) {
-        <app-quiz-corrige [questions]="quiz.value()" />
-        <details class="replay">
-          <summary>Rejouer ce quiz</summary>
-          <app-quiz-player [theme]="slug()" [date]="date()" [questions]="quiz.value()" />
-        </details>
-        <nav aria-label="Autres quiz {{ theme().name }}" class="day-nav">
-          <ul>
-            @if (previousDate(); as previous) {
-              <li>
-                <a [routerLink]="['/quiz', slug(), previous]"
-                  >← Quiz du {{ formatShort(previous) }}</a
-                >
-              </li>
-            }
-            @if (nextDate(); as next) {
-              <li>
-                <a [routerLink]="['/quiz', slug(), next]">Quiz du {{ formatShort(next) }} →</a>
-              </li>
-            } @else {
-              <li>
-                <a [routerLink]="['/quiz', slug()]">Quiz du jour →</a>
-              </li>
-            }
-          </ul>
-        </nav>
-      } @else {
-        <app-quiz-player [theme]="slug()" [date]="date()" [questions]="quiz.value()" />
-      }
-    } @else if (quiz.error()) {
-      <p role="alert">Le quiz n’a pas pu être chargé. Rechargez la page pour réessayer.</p>
+    @if (withCorrige()) {
+      <app-quiz-corrige [questions]="quiz()" />
+      <details class="replay">
+        <summary>Rejouer ce quiz</summary>
+        <app-quiz-player [theme]="slug()" [date]="date()" [questions]="quiz()" />
+      </details>
+      <nav aria-label="Autres quiz {{ theme().name }}" class="day-nav">
+        <ul>
+          @if (previousDate(); as previous) {
+            <li>
+              <a [routerLink]="['/quiz', slug(), previous]"
+                >← Quiz du {{ formatShort(previous) }}</a
+              >
+            </li>
+          }
+          @if (nextDate(); as next) {
+            <li>
+              <a [routerLink]="['/quiz', slug(), next]">Quiz du {{ formatShort(next) }} →</a>
+            </li>
+          } @else {
+            <li>
+              <a [routerLink]="['/quiz', slug()]">Quiz du jour →</a>
+            </li>
+          }
+        </ul>
+      </nav>
     } @else {
-      <p role="status">Chargement du quiz…</p>
+      <app-quiz-player [theme]="slug()" [date]="date()" [questions]="quiz()" />
     }
   `,
 })
 export class QuizPageComponent {
   readonly slug = input.required<ThemeSlug>();
+  /** Toutes les questions du thème, chargées par la route (`resolveQuizPool`). */
+  readonly pool = input.required<readonly Question[]>();
   readonly date = input.required<IsoDate>();
   readonly isToday = input(true);
   readonly withCorrige = input(false);
@@ -114,17 +109,13 @@ export class QuizPageComponent {
     return next < toIsoDate(new Date()) ? next : null;
   });
 
-  protected readonly quiz = resource({
-    params: () => ({ slug: this.slug(), date: this.date() }),
-    loader: async ({ params }) =>
-      dailyQuestions(await loadQuestions(params.slug), params.slug, params.date),
-  });
+  protected readonly quiz = computed(() => dailyQuestions(this.pool(), this.slug(), this.date()));
 
   constructor() {
     usePageSeo(() => {
       const theme = this.theme();
       const date = this.date();
-      const questions = this.quiz.hasValue() ? this.quiz.value() : [];
+      const questions = this.quiz();
       const isToday = this.isToday();
       return {
         ...(isToday ? todayMeta(theme, date) : archiveMeta(theme, date, this.questionCount)),
@@ -138,7 +129,7 @@ export class QuizPageComponent {
               theme,
               date,
               questions,
-              withAnswers: !isToday && questions.length > 0,
+              withAnswers: !isToday,
             }),
             breadcrumbs(SITE_URL, [
               { name: 'Accueil', path: '/' },

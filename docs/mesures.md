@@ -34,3 +34,14 @@ Le JavaScript a grossi (+20 kB : fil d'Ariane, FAQ, données structurées, compt
 3. **`afterNextRender` s'exécute aussi côté serveur** : un drapeau « prêt » posé dedans est déjà vrai dans le HTML. Il faut tester `isPlatformBrowser`.
 4. **`[disabled]` n'est pas écrit dans le HTML serveur** (propriété DOM), alors que `[attr.disabled]` l'est. Avant l'hydratation, un formulaire serait soumis nativement par le navigateur (pour la connexion : mot de passe dans l'adresse).
 5. **Les émulateurs Firebase démarrent chacun à leur rythme** : `e2e/global-setup.ts` attend qu'Auth et Firestore répondent.
+
+## Phase 3 : performance (Lighthouse mobile)
+
+| Page         | Perf phase 2 | Perf phase 3 | LCP phase 2 | LCP phase 3 | CLS phase 2 | CLS phase 3 |
+| ------------ | ------------ | ------------ | ----------- | ----------- | ----------- | ----------- |
+| Accueil      | 83           | 99           | 3,51 s      | 1,73 s      | 0           | 0           |
+| Thème        | 80           | 99           | 3,83 s      | 1,65 s      | 0           | 0           |
+| Quiz du jour | 75           | 96           | 4,43 s      | 2,48 s      | 0,043       | 0           |
+| À propos     | 82           | 99           | 3,66 s      | 1,87 s      | 0           | 0           |
+
+Détail des causes et des corrections dans `docs/performance.md`. Détail de l'accessibilité dans `docs/accessibilite.md`.

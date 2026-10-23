@@ -6,6 +6,7 @@ import { provideRouter } from '@angular/router';
 import { QuizPageComponent } from './quiz-page.component';
 
 import { SITE_URL } from '@app/core/seo/site';
+import { loadQuestions } from '@data/question-loader';
 import type { IsoDate, ThemeSlug } from '@data/quiz.types';
 
 const DATE = '2026-10-23' as IsoDate;
@@ -27,8 +28,11 @@ async function render(options: {
       node.remove();
     });
 
+  const slug = options.slug ?? 'histoire';
+  const pool = await loadQuestions(slug);
   const fixture = TestBed.createComponent(QuizPageComponent);
-  fixture.componentRef.setInput('slug', options.slug ?? 'histoire');
+  fixture.componentRef.setInput('slug', slug);
+  fixture.componentRef.setInput('pool', pool);
   fixture.componentRef.setInput('date', options.date ?? DATE);
   fixture.componentRef.setInput('isToday', options.isToday);
   fixture.componentRef.setInput('withCorrige', options.withCorrige);

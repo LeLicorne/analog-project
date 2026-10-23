@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { ProgressStore } from './progress.store';
+import { ProgressStore, parseResults } from './progress.store';
 
 import type { IsoDate } from '@data/quiz.types';
 
@@ -51,5 +51,24 @@ describe('ProgressStore', () => {
     );
     const store = createStore();
     expect(store.playedDates()).toEqual([]);
+  });
+});
+
+describe('parseResults', () => {
+  it('accepte des résultats valides et un objet vide', () => {
+    expect(parseResults({})).toEqual({});
+    expect(parseResults({ 'web:2026-10-23': { score: 3, answers: [0, true, 2] } })).not.toBeNull();
+  });
+
+  it.each([
+    ['null', null],
+    ['un tableau', []],
+    ['une chaîne', 'x'],
+    ['un score négatif', { k: { score: -1, answers: [] } }],
+    ['un score décimal', { k: { score: 1.5, answers: [] } }],
+    ['des réponses non valides', { k: { score: 1, answers: ['a'] } }],
+    ['un résultat incomplet', { k: { score: 1 } }],
+  ])('refuse %s', (_label, value) => {
+    expect(parseResults(value)).toBeNull();
   });
 });
