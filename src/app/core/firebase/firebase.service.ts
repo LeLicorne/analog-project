@@ -51,11 +51,15 @@ export class FirebaseService {
   }
 
   private async createAuth(): Promise<Auth> {
-    const [{ connectAuthEmulator, getAuth }, app] = await Promise.all([
-      import('firebase/auth'),
-      this.app(),
-    ]);
-    const auth = getAuth(app);
+    const [
+      { browserLocalPersistence, connectAuthEmulator, indexedDBLocalPersistence, initializeAuth },
+      app,
+    ] = await Promise.all([import('firebase/auth'), this.app()]);
+    // `initializeAuth` sans résolveur de popup : `getAuth` chargerait un iframe et un script Google (apis.google.com)
+    // que la CSP interdit, et dont l'e-mail / mot de passe n'a pas besoin.
+    const auth = initializeAuth(app, {
+      persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+    });
     if (this.useEmulators && this.isBrowser) {
       connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
     }

@@ -32,9 +32,13 @@ test.describe('accessibilité : modes et préférences', () => {
 
     test(`${route} : le texte reste lisible avec l’espacement WCAG 1.4.12`, async ({ page }) => {
       await page.goto(route);
-      await page.addStyleTag({
-        content:
+      // Feuille construite par l'API CSSOM : une balise <style> injectée serait bloquée par la CSP (style-src 'self').
+      await page.evaluate(() => {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(
           '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }',
+        );
+        document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
       });
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

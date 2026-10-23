@@ -22,7 +22,19 @@ describe('parseFirebaseConfig', () => {
     ).toBe('G-1');
   });
 
-  it('échoue explicitement si une variable manque', () => {
-    expect(() => parseFirebaseConfig({ ...validEnv, VITE_FIREBASE_API_KEY: undefined })).toThrow();
+  it('échoue en nommant la variable manquante', () => {
+    expect(() => parseFirebaseConfig({ ...validEnv, VITE_FIREBASE_API_KEY: undefined })).toThrow(
+      'VITE_FIREBASE_API_KEY',
+    );
+  });
+
+  it('traite une variable vide ou faite d’espaces comme absente', () => {
+    expect(() => parseFirebaseConfig({ ...validEnv, VITE_FIREBASE_APP_ID: '   ' })).toThrow(
+      'VITE_FIREBASE_APP_ID',
+    );
+  });
+
+  it('liste toutes les variables manquantes d’un coup', () => {
+    expect(() => parseFirebaseConfig({})).toThrow(/API_KEY.*AUTH_DOMAIN.*PROJECT_ID/);
   });
 });

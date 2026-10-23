@@ -58,6 +58,28 @@ export default tseslint.config(
       'import-x/no-default-export': 'off',
       'import-x/order': ['error', { 'newlines-between': 'always', alphabetize: { order: 'asc' } }],
       '@typescript-eslint/no-extraneous-class': ['error', { allowWithDecorator: true }],
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-new-func': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'AssignmentExpression[left.property.name=/^(innerHTML|outerHTML)$/]',
+          message:
+            'innerHTML/outerHTML ouvre une faille XSS : utiliser les liaisons Angular (échappées).',
+        },
+        {
+          selector:
+            'CallExpression[callee.property.name=/^(insertAdjacentHTML|bypassSecurityTrust.*)$/]',
+          message:
+            'Contourner la sanitisation Angular est interdit : le contenu doit être sûr par construction.',
+        },
+        {
+          selector:
+            "CallExpression[callee.object.name='document'][callee.property.name=/^(write|writeln)$/]",
+          message: 'document.write est interdit.',
+        },
+      ],
       'no-console': ['error', { allow: ['warn', 'error'] }],
     },
   },

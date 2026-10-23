@@ -37,7 +37,7 @@ Règles de dépendances (appliquées par ESLint) : `pages → features/shared/co
 - TypeScript strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `verbatimModuleSyntax`). Pas de `any`, pas de `!` hors tests, types de retour explicites. `import type` pour les types.
 - Préfixe `app-` pour les sélecteurs. Pas de `console.log`.
 - Tests colocalisés `*.spec.ts` (Vitest). **Tout code généré doit être relu, compris et testé** : pas de logique métier sans test.
-- Pas de `innerHTML` ni `bypassSecurityTrust*`. Entrées externes validées avec Zod.
+- Pas de `innerHTML` ni `bypassSecurityTrust*`. Entrées externes (stockage local, Firestore, environnement) validées par des fonctions typées écrites à la main (`parseResults`, `parseFirebaseConfig`) : pas de Zod, qui sonde `eval` et viole la CSP.
 - Firebase : Auth et Firestore sont chargés à la demande (`import()`), jamais en import statique ; les écritures Firestore respectent `firestore.rules` (testées par `test:rules`). Chaque suite de tests se lance une seule fois par vérification. Les tests e2e ne touchent jamais le vrai projet : émulateurs uniquement.
 - Secrets : jamais dans le dépôt. `.env` ignoré, `.env.example` à jour.
 
@@ -47,6 +47,14 @@ Règles de dépendances (appliquées par ESLint) : `pages → features/shared/co
 - Toute nouvelle page : `title` unique, meta description, canonical, un seul `h1`, JSON-LD adapté, contenu présent dans le HTML rendu côté serveur (SSG/SSR).
 - Chaque page ajoutée est ajoutée à `e2e/a11y.spec.ts` et aux routes prérendues de `vite.config.ts`.
 - `/llms.txt` existe (généré par `src/data/seo/llms.ts`) comme point d'entrée lisible, mais le GEO repose d'abord sur du contenu rendu côté serveur, factuel, sourcé, daté, avec données structurées.
+
+## Sécurité (détails dans `docs/securite.md`)
+
+- CSP stricte `script-src 'self'`, sans nonce : le site ne doit émettre **aucun script ni style inline**. Un test e2e fait échouer toute violation. Ajouter une source externe = modifier `src/data/security/headers.ts` et son test.
+- Hydratation : `withNoIncrementalHydration()` est obligatoire (sinon Angular 22 injecte des scripts inline). Pas de Zod (il sonde `eval`). Firebase Auth : `initializeAuth`, pas `getAuth`.
+- Interdits par ESLint et par test : `innerHTML`, `bypassSecurityTrust*`, `eval`, `document.write`, gestionnaires `on*` et `style=` inline.
+- Le serveur n'a que des routes en lecture (`src/server/middleware/request-guard.ts` refuse le reste). Pas de cookie : si un cookie de session est ajouté, prévoir SameSite, HttpOnly, Secure et une protection CSRF.
+- Jamais de secret dans le dépôt (un test le vérifie). La config web Firebase n'est pas un secret, une clé privée ou un jeton serveur l'est.
 
 ## Pièges connus (détails dans `docs/mesures.md`)
 
