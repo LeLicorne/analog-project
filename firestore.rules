@@ -1,14 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Seuls `results` (map « thème:date » -> résultat) et `updatedAt` sont autorisés.
+    // Les règles ne peuvent pas itérer sur une map : la taille est bornée, le format fin est validé côté client (Zod).
+    function isValidProfile(data) {
+      return data.keys().hasOnly(['results', 'updatedAt'])
+        && data.results is map
+        && data.results.size() <= 5000
+        && data.updatedAt == request.time;
+    }
+
     // Par défaut : tout est fermé. Chaque collection doit être ouverte explicitement.
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Un utilisateur ne lit et n'écrit que son propre profil.
+    // Un utilisateur ne lit et n'écrit que son propre profil, et ne peut pas le supprimer.
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isValidProfile(request.resource.data);
+      allow delete: if false;
     }
   }
 }

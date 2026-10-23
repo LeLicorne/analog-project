@@ -5,13 +5,14 @@ Conventions du framework : `node_modules/@analogjs/platform/AGENTS.md` (à lire 
 
 ## Commandes (toujours avec `bun`)
 
-| Commande                              | Rôle                                                                    |
-| ------------------------------------- | ----------------------------------------------------------------------- |
-| `bun run dev`                         | Serveur de dev                                                          |
-| `bun run check`                       | **Point d'entrée unique** : format + lint + typecheck + tests unitaires |
-| `bun run lint:fix` / `bun run format` | Corrections automatiques                                                |
-| `bun run test:coverage`               | Vitest avec seuils de couverture                                        |
-| `bun run test:e2e`                    | Playwright (parcours + axe-core), build puis preview                    |
+| Commande                              | Rôle                                                                                                |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `bun run dev`                         | Serveur de dev                                                                                      |
+| `bun run check`                       | **Point d'entrée unique** : format + lint + typecheck + tests unitaires                             |
+| `bun run lint:fix` / `bun run format` | Corrections automatiques                                                                            |
+| `bun run test:coverage`               | Vitest avec seuils de couverture                                                                    |
+| `bun run test:rules`                  | Règles Firestore sur l'émulateur (Java requis), à relancer à chaque changement de `firestore.rules` |
+| `bun run test:e2e`                    | Playwright (parcours + axe-core) sur les émulateurs Firebase, build puis preview                    |
 
 **Définition de « terminé » : `bun run check` est vert**, et `bun run test:e2e` pour toute page ou tout parcours touché.
 
@@ -21,7 +22,7 @@ Conventions du framework : `node_modules/@analogjs/platform/AGENTS.md` (à lire 
 src/app/pages/      routes (fichiers *.page.ts, export default), minces : elles assemblent des features
 src/app/features/   une feature = un dossier autonome (composants, services, état)
 src/app/shared/     UI et utilitaires génériques, sans logique métier
-src/app/core/       services transverses (auth, firebase, config, seo)
+src/app/core/       services transverses (auth, sync du compte, firebase, progression, seo)
 src/data/           types et données de quiz (pur TypeScript, sans Angular)
 src/content/        markdown (explications, pages éditoriales)
 src/server/         routes Nitro (rendu, headers de sécurité), aucune logique métier
@@ -37,6 +38,7 @@ Règles de dépendances (appliquées par ESLint) : `pages → features/shared/co
 - Préfixe `app-` pour les sélecteurs. Pas de `console.log`.
 - Tests colocalisés `*.spec.ts` (Vitest). **Tout code généré doit être relu, compris et testé** : pas de logique métier sans test.
 - Pas de `innerHTML` ni `bypassSecurityTrust*`. Entrées externes validées avec Zod.
+- Firebase : Auth et Firestore sont chargés à la demande (`import()`), jamais en import statique ; les écritures Firestore respectent `firestore.rules` (testées par `test:rules`). Les tests e2e ne touchent jamais le vrai projet : émulateurs uniquement.
 - Secrets : jamais dans le dépôt. `.env` ignoré, `.env.example` à jour.
 
 ## Accessibilité, SEO, GEO (priorité du projet)

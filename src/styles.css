@@ -109,8 +109,10 @@ ol {
   margin: 0 0 1rem;
 }
 
+/* Les liens dans le texte sont soulignés : la couleur seule ne suffit pas (WCAG 1.4.1). */
 a {
   color: var(--link);
+  text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 
@@ -467,4 +469,103 @@ a:hover {
   .card {
     transition: box-shadow 0.15s ease;
   }
+}
+
+/* Formulaires */
+.field {
+  margin-bottom: 1.25rem;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+.field input:not([type='checkbox']) {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+}
+
+.field input[aria-invalid='true'] {
+  border-color: var(--ko-border);
+  border-style: dashed;
+}
+
+.field__hint {
+  margin: 0 0 0.25rem;
+  color: var(--muted);
+}
+
+.field__error {
+  margin: 0.35rem 0 0;
+  font-weight: 700;
+}
+
+.field .checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  margin: 0.25rem 0 0;
+  font-weight: 400;
+}
+
+.checkbox input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--primary);
+}
+
+.link-button {
+  padding: 0.5rem 0;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.form-extra {
+  margin: 0.5rem 0 0;
+}
+
+.form-info:empty {
+  display: none;
+}
+
+.btn--small {
+  min-height: 36px;
+  padding: 0.35rem 0.9rem;
+}
+
+.btn:disabled {
+  cursor: progress;
+}
+
+.account {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+}
+
+.account a {
+  display: inline-block;
+  padding: 0.25rem 0;
+}
+
+.account__email {
+  overflow-wrap: anywhere;
+  color: var(--muted);
 }

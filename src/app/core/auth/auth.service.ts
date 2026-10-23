@@ -1,0 +1,109 @@
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+
+import { FirebaseService } from '@app/core/firebase/firebase.service';
+import { ProgressStore } from '@app/core/progress/progress.store';
+
+export type AuthStatus = 'unknown' | 'signed-out' | 'signed-in';
+
+export interface AuthUser {
+  readonly uid: string;
+  readonly email: string | null;
+}
+
+const SESSION_HINT_KEY = 'quizz-du-jour:session-hint';
+
+function readSessionHint(): boolean {
+  try {
+    return localStorage.getItem(SESSION_HINT_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeSessionHint(active: boolean): void {
+  try {
+    if (active) localStorage.setItem(SESSION_HINT_KEY, '1');
+    else localStorage.removeItem(SESSION_HINT_KEY);
+  } catch {
+    // Stockage indisponible : la session Firebase reste valide, seul le rechargement automatique est perdu.
+  }
+}
+
+/**
+ * Session Firebase Auth (e-mail + mot de passe). Le SDK n'est chargé que si le visiteur a déjà une session
+ * (indice local) ou ouvre un formulaire de compte : un visiteur anonyme ne télécharge rien.
+ */
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private readonly firebase = inject(FirebaseService);
+  private readonly progress = inject(ProgressStore);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  readonly status = signal<AuthStatus>('unknown');
+  readonly user = signal<AuthUser | null>(null);
+  readonly isSignedIn = computed(() => this.status() === 'signed-in');
+
+  private listening: Promise<void> | undefined;
+
+  /** À appeler au démarrage dans le navigateur : ne charge Firebase que s'il y a une session à restaurer. */
+  async restore(): Promise<void> {
+    if (!this.isBrowser) return;
+    if (!readSessionHint()) {
+      this.status.set('signed-out');
+      return;
+    }
+    await this.listen();
+  }
+
+  async signUp(email: string, password: string): Promise<void> {
+    await this.listen();
+    const [auth, { createUserWithEmailAndPassword }] = await Promise.all([
+      this.firebase.auth(),
+      import('firebase/auth'),
+    ]);
+    await createUserWithEmailAndPassword(auth, email, password);
+  }
+
+  async signIn(email: string, password: string): Promise<void> {
+    await this.listen();
+    const [auth, { signInWithEmailAndPassword }] = await Promise.all([
+      this.firebase.auth(),
+      import('firebase/auth'),
+    ]);
+    await signInWithEmailAndPassword(auth, email, password);
+  }
+
+  async resetPassword(email: string): Promise<void> {
+    const [auth, { sendPasswordResetEmail }] = await Promise.all([
+      this.firebase.auth(),
+      import('firebase/auth'),
+    ]);
+    await sendPasswordResetEmail(auth, email);
+  }
+
+  async signOut(): Promise<void> {
+    const [auth, { signOut }] = await Promise.all([this.firebase.auth(), import('firebase/auth')]);
+    await signOut(auth);
+    // Les résultats sont déjà dans le compte : on vide l'appareil, qui peut être partagé.
+    this.progress.clear();
+  }
+
+  private listen(): Promise<void> {
+    this.listening ??= (async () => {
+      const [auth, { onAuthStateChanged }] = await Promise.all([
+        this.firebase.auth(),
+        import('firebase/auth'),
+      ]);
+      await new Promise<void>((resolve) => {
+        onAuthStateChanged(auth, (user) => {
+          this.user.set(user ? { uid: user.uid, email: user.email } : null);
+          this.status.set(user ? 'signed-in' : 'signed-out');
+          writeSessionHint(user !== null);
+          resolve();
+        });
+      });
+    })();
+    return this.listening;
+  }
+}

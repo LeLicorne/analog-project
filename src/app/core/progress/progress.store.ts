@@ -2,28 +2,28 @@ import { Injectable, afterNextRender, computed, signal } from '@angular/core';
 import { z } from 'zod';
 
 import { isIsoDate, toIsoDate } from '@data/dates';
-import type { Answer, IsoDate, ThemeSlug } from '@data/quiz.types';
+import type { IsoDate, ThemeSlug } from '@data/quiz.types';
 import { computeStreak } from '@data/streak';
 
 const STORAGE_KEY = 'quizz-du-jour:progress:v1';
 
+const quizResultSchema = z.object({
+  score: z.number().int().min(0),
+  answers: z.array(z.union([z.number().int(), z.boolean()])),
+});
+
+/** Format commun au stockage local et au document Firestore `users/{uid}`. */
+export const resultsSchema = z.record(z.string(), quizResultSchema);
+
 const storedSchema = z.object({
   version: z.literal(1),
-  results: z.record(
-    z.string(),
-    z.object({
-      score: z.number().int().min(0),
-      answers: z.array(z.union([z.number().int(), z.boolean()])),
-    }),
-  ),
+  results: resultsSchema,
 });
 
 type StoredState = z.infer<typeof storedSchema>;
 
-export interface QuizResult {
-  readonly score: number;
-  readonly answers: readonly Answer[];
-}
+export type QuizResult = z.infer<typeof quizResultSchema>;
+export type QuizResults = Readonly<Record<string, QuizResult>>;
 
 const EMPTY_STATE: StoredState = { version: 1, results: {} };
 
@@ -61,6 +61,8 @@ export class ProgressStore {
 
   readonly ready = signal(false);
 
+  readonly results = computed<QuizResults>(() => this.state().results);
+
   readonly playedDates = computed<IsoDate[]>(() => {
     const dates = Object.keys(this.state().results)
       .map((key) => key.split(':')[1] ?? '')
@@ -94,5 +96,18 @@ export class ProgressStore {
     };
     this.state.set(next);
     writeStorage(next);
+  }
+
+  /** Remplace tous les résultats (fusion avec le compte à la connexion). */
+  replaceAll(results: QuizResults): void {
+    const next: StoredState = { version: 1, results: { ...results } };
+    this.state.set(next);
+    writeStorage(next);
+  }
+
+  /** Efface la progression locale (déconnexion : l'appareil peut être partagé). */
+  clear(): void {
+    this.state.set(EMPTY_STATE);
+    writeStorage(EMPTY_STATE);
   }
 }

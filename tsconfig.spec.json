@@ -7,5 +7,12 @@
     "types": ["node", "vitest/globals"]
   },
   "files": ["src/test-setup.ts"],
-  "include": ["src/**/*.spec.ts", "src/**/*.ts", "e2e/**/*.ts", "playwright.config.ts"]
+  "include": [
+    "src/**/*.spec.ts",
+    "src/**/*.ts",
+    "e2e/**/*.ts",
+    "playwright.config.ts",
+    "rules-tests/**/*.ts",
+    "vitest.rules.config.ts"
+  ]
 }

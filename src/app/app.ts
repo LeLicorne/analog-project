@@ -1,14 +1,24 @@
 import { isPlatformBrowser } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, PLATFORM_ID, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  PLATFORM_ID,
+  afterNextRender,
+  inject,
+} from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 
+import { AuthService } from '@app/core/auth/auth.service';
 import { SITE_NAME } from '@app/core/seo/page-title';
+import { CloudSyncService } from '@app/core/sync/cloud-sync.service';
+import { AccountMenuComponent } from '@app/features/account/account-menu.component';
 import { THEMES } from '@data/themes';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RouterOutlet],
+  imports: [AccountMenuComponent, RouterLink, RouterOutlet],
   template: `
     <a class="skip-link" href="#main">Aller au contenu principal</a>
     <header class="site-header">
@@ -22,6 +32,7 @@ import { THEMES } from '@data/themes';
           }
         </ul>
       </nav>
+      <app-account-menu />
     </header>
     <main id="main" tabindex="-1">
       <router-outlet />
@@ -35,7 +46,14 @@ export class App {
   protected readonly siteName = SITE_NAME;
   protected readonly themes = THEMES;
 
+  private readonly auth = inject(AuthService);
+
   constructor() {
+    // Instancié ici pour que la synchronisation du compte tourne pendant toute la session.
+    inject(CloudSyncService);
+    afterNextRender(() => {
+      void this.auth.restore();
+    });
     this.moveFocusToMainOnNavigation();
   }
 
