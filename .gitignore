@@ -57,3 +57,6 @@ Thumbs.db
 # Journaux des émulateurs Firebase
 *-debug.log
 /.firebase
+
+# Rapports Lighthouse CI
+/.lighthouseci

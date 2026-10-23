@@ -1,0 +1,86 @@
+# EXEMPLE DE RÉFÉRENCE, NON DÉPLOYÉ : ce que donnerait Quizz du jour sur Kubernetes.
+# Le projet tourne sur un VPS avec Docker Compose et Traefik (voir docs/deploiement.md) ; ce fichier sert à comparer.
+# Vérifié seulement : YAML valide, trois ressources (Deployment, Service, Ingress). Le schéma Kubernetes n'a PAS été validé
+# (pas de cluster disponible) et rien n'a été déployé.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quizz-du-jour
+  labels: { app: quizz-du-jour }
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }
+  selector:
+    matchLabels: { app: quizz-du-jour }
+  template:
+    metadata:
+      labels: { app: quizz-du-jour }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: ghcr.io/lelicorne/analog-project:REMPLACER_PAR_LE_COMMIT
+          ports:
+            - containerPort: 80
+          env:
+            - name: SITE_URL
+              value: https://quizz.example.com
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ['ALL'] }
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits: { memory: 512Mi }
+          # Le trafic n'arrive qu'une fois /healthz répondu (équivalent du HEALTHCHECK Docker).
+          readinessProbe:
+            httpGet: { path: /healthz, port: 80 }
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: 80 }
+            initialDelaySeconds: 10
+            periodSeconds: 30
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quizz-du-jour
+spec:
+  selector: { app: quizz-du-jour }
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quizz-du-jour
+  annotations:
+    # Certificat Let's Encrypt géré par cert-manager (équivalent du certresolver Traefik).
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: [quizz.example.com]
+      secretName: quizz-du-jour-tls
+  rules:
+    - host: quizz.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: quizz-du-jour
+                port: { number: 80 }

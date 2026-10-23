@@ -1,0 +1,23 @@
+name: Liens sources
+
+# Les pages distantes (Wikipédia, MDN, W3C) peuvent être renommées : on contrôle chaque semaine que les 346 liens sources
+# des questions répondent encore. Un échec envoie la notification GitHub habituelle.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.x
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run check:links

@@ -140,3 +140,25 @@ test.describe('connexions sortantes', () => {
     expect([...hosts].filter((host) => !allowed.has(host))).toEqual([]);
   });
 });
+
+test.describe('santé du service', () => {
+  test('/healthz répond « ok », sans cache, sans indexation, et ne figure pas au sitemap', async ({
+    request,
+  }) => {
+    const response = await request.get('/healthz');
+    expect(response.status()).toBe(200);
+    expect(response.headers()['cache-control']).toBe('no-store');
+    expect(response.headers()['x-robots-tag']).toBe('noindex');
+    const report = (await response.json()) as {
+      status: string;
+      commit: string;
+      uptimeSeconds: number;
+    };
+    expect(report.status).toBe('ok');
+    expect(typeof report.commit).toBe('string');
+    expect(report.uptimeSeconds).toBeGreaterThanOrEqual(0);
+
+    const sitemap = await (await request.get('/sitemap.xml')).text();
+    expect(sitemap).not.toContain('healthz');
+  });
+});

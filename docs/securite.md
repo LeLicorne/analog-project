@@ -52,7 +52,7 @@ Le garde-fou `request-guard` refuse en plus toute méthode d'écriture et tout c
 - Aucun vrai secret n'est utilisé par le site (pas de clé privée, pas de jeton serveur).
 - `.env.local` est ignoré par git. `.env.example` liste les variables **sans valeur** ; un test échoue si une variable de type clé, jeton ou mot de passe y contient quelque chose.
 - Analyse automatique du dépôt à chaque test (`static-analysis.spec.ts`) : clés Google, clés privées, jetons Stripe, GitHub, Slack, AWS.
-- **En CI/CD (thème 7)** : variables `VITE_*` passées comme variables de build (elles finissent dans le JavaScript public, donc rien de secret dedans) ; tout vrai secret en « secret » GitHub Actions, jamais dans un `ARG` ou une couche d'image Docker.
+- **En CI/CD** : variables `VITE_*` passées comme variables de build (elles finissent dans le JavaScript public, donc rien de secret dedans) ; tout vrai secret en « secret » GitHub Actions, jamais dans un `ARG` ou une couche d'image Docker.
 
 ## Dépendances (`bun audit`)
 

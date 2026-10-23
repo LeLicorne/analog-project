@@ -1,0 +1,160 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Droits minimaux : la CI lit le dépôt, rien d'autre.
+permissions:
+  contents: read
+
+# Un nouveau commit annule l'exécution précédente de la même branche (économie de minutes, résultat toujours à jour).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Valeurs factices : les tests tournent contre les émulateurs Firebase, la CI n'a besoin d'aucun secret.
+  VITE_FIREBASE_API_KEY: demo-key
+  VITE_FIREBASE_AUTH_DOMAIN: demo.firebaseapp.com
+  VITE_FIREBASE_PROJECT_ID: demo-quizz-du-jour
+  VITE_FIREBASE_STORAGE_BUCKET: demo.appspot.com
+  VITE_FIREBASE_MESSAGING_SENDER_ID: '1'
+  VITE_FIREBASE_APP_ID: 1:1:web:1
+
+jobs:
+  quality:
+    name: Format, lint, types, tests unitaires
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.x
+      # --ignore-scripts : aucun script d'installation de dépendance ne s'exécute dans la CI.
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run format:check
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun run test:coverage
+      - name: Audit des dépendances de production
+        # Informatif : la seule alerte connue (@grpc/grpc-js via Firestore) n'est pas atteignable dans le navigateur
+        # (voir docs/securite.md). Toute NOUVELLE alerte doit être examinée à la main dans ce journal.
+        continue-on-error: true
+        run: bun audit --prod
+
+  rules:
+    name: Règles Firestore (émulateur)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.x
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run test:rules
+
+  e2e:
+    name: Tests de bout en bout (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.x
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bunx playwright install --with-deps chromium
+      - run: bun run test:e2e
+      - name: Conserver le rapport en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+  lighthouse:
+    name: Lighthouse (budgets de performance, accessibilité, SEO)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.x
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run build
+      - name: Lighthouse CI (3 mesures par page, médiane)
+        run: bunx @lhci/cli@0.15.x autorun
+      - name: Conserver les rapports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 7
+
+  docker:
+    name: Image Docker (construction et démarrage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construire l'image
+        run: |
+          docker build \
+            --build-arg VITE_SITE_URL=https://quizz.example \
+            --build-arg VITE_FIREBASE_API_KEY="$VITE_FIREBASE_API_KEY" \
+            --build-arg VITE_FIREBASE_AUTH_DOMAIN="$VITE_FIREBASE_AUTH_DOMAIN" \
+            --build-arg VITE_FIREBASE_PROJECT_ID="$VITE_FIREBASE_PROJECT_ID" \
+            --build-arg VITE_FIREBASE_STORAGE_BUCKET="$VITE_FIREBASE_STORAGE_BUCKET" \
+            --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID="$VITE_FIREBASE_MESSAGING_SENDER_ID" \
+            --build-arg VITE_FIREBASE_APP_ID="$VITE_FIREBASE_APP_ID" \
+            --build-arg GIT_SHA="${GITHUB_SHA::7}" \
+            -t quizz-ci .
+      - name: Démarrer avec le même durcissement que docker-compose.yml
+        run: |
+          docker run -d --name quizz --read-only --tmpfs /tmp --cap-drop ALL \
+            --security-opt no-new-privileges:true -e SITE_URL=https://quizz.example -p 8080:80 quizz-ci
+          for i in $(seq 1 30); do
+            status="$(docker inspect --format '{{.State.Health.Status}}' quizz)"
+            [ "$status" = "healthy" ] && break
+            sleep 2
+          done
+          echo "santé : $status"
+          [ "$status" = "healthy" ] || { docker logs quizz; exit 1; }
+      - name: Vérifier ce que sert réellement le conteneur
+        run: |
+          set -e
+          [ "$(docker exec quizz id -u)" != "0" ] || { echo "le conteneur tourne en root"; exit 1; }
+          curl -sf http://localhost:8080/healthz | grep -q '"status":"ok"'
+          curl -sf http://localhost:8080/robots.txt | grep -q 'Sitemap: https://quizz.example/sitemap.xml'
+          curl -sfI http://localhost:8080/ | grep -qi "content-security-policy: default-src 'self'; script-src 'self'"
+          curl -sfI http://localhost:8080/ | grep -qi "strict-transport-security"
+          curl -sf http://localhost:8080/quiz/histoire | grep -q 'rel="canonical" href="https://quizz.example/quiz/histoire"'
+          [ "$(curl -s -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/)" = "405" ]
+      - name: Journal du conteneur en cas d'échec
+        if: failure()
+        run: docker logs quizz || true
+
+  deploy:
+    name: Déploiement en production
+    needs: [quality, rules, e2e, lighthouse, docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

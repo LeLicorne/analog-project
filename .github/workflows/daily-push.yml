@@ -1,0 +1,53 @@
+name: Rappel quotidien
+
+# Envoie la notification quotidienne aux appareils enregistrés (scripts/send-daily-push.ts).
+# Heure : 17 h UTC, soit 18 h ou 19 h à Paris. Sans le secret FIREBASE_SERVICE_ACCOUNT, la tâche s'arrête sans erreur.
+on:
+  schedule:
+    - cron: '0 17 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Simulation : compte les notifications sans rien envoyer'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Vérifier la configuration
+        id: config
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::notice::Secret FIREBASE_SERVICE_ACCOUNT absent : envoi ignoré (voir docs/pwa.md)."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.config.outputs.configured == 'true'
+      - uses: oven-sh/setup-bun@v2
+        if: steps.config.outputs.configured == 'true'
+        with:
+          bun-version: 1.4.x
+      - run: bun install --frozen-lockfile --ignore-scripts
+        if: steps.config.outputs.configured == 'true'
+      - name: Envoyer
+        if: steps.config.outputs.configured == 'true'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          # Le compte de service est écrit dans un fichier temporaire du runner, jamais dans le dépôt ni dans les journaux.
+          key_file="$(mktemp)"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$key_file"
+          trap 'rm -f "$key_file"' EXIT
+          export GOOGLE_APPLICATION_CREDENTIALS="$key_file"
+          if [ "$DRY_RUN" = "true" ]; then bun scripts/send-daily-push.ts --dry-run; else bun scripts/send-daily-push.ts; fi

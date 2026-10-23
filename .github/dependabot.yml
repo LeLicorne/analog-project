@@ -1,0 +1,11 @@
+# Mises à jour automatiques de ce qui n'est pas couvert par bun.lock : les actions GitHub et les images Docker de base.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly

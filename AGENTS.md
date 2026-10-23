@@ -75,6 +75,13 @@ Règles de dépendances (appliquées par ESLint) : `pages → features/shared/co
 - Tout écouteur ajouté sur `window` doit être retiré à la destruction du service (`DestroyRef`).
 - Les règles Firestore ne sont pas déployées automatiquement : après toute modification, `bunx firebase deploy --only firestore:rules`.
 
+## CI/CD et production (détails dans `docs/deploiement.md` et `docs/monitoring.md`)
+
+- La CI (`.github/workflows/ci.yml`) : qualité, règles Firestore, e2e, Lighthouse CI (budgets dans `lighthouserc.json`), image Docker. Le déploiement (`deploy.yml`) ne part qu'après les cinq, sur `main`, et chaque nuit (la liste des quiz passés est figée au build).
+- Docker : image en deux étapes, utilisateur non privilégié, `HEALTHCHECK` sur `/healthz`. **Aucun secret dans un `ARG`, une variable `VITE_*` ou l'image** : ces valeurs sont publiques. `docker-compose.yml` suit le schéma Traefik de l'utilisateur (`APP_NAME`, `DOMAIN`, labels) : ne pas en changer la structure sans raison.
+- Tout changement de `scripts/deploy.sh` se teste **en échec** (release cassée, retour arrière), pas seulement sur le cas nominal.
+- Ne jamais déployer, pousser ni lancer `docker compose up` contre la production sans demande explicite.
+
 ## Pièges connus (détails dans `docs/mesures.md`)
 
 - `afterNextRender` s'exécute aussi côté serveur : tester `isPlatformBrowser` avant de poser un drapeau « navigateur ».

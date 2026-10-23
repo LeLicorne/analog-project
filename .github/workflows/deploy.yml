@@ -1,0 +1,80 @@
+name: Deploy
+
+# Appelé par la CI après un push sur main, relancé chaque nuit (la liste des quiz passés est figée à la construction :
+# sans reconstruction quotidienne, les pages de thème n'afficheraient pas les corrigés de la veille), ou à la main.
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    # 22 h 05 et 23 h 05 UTC : l'une des deux tombe juste après minuit à Paris, été comme hiver.
+    - cron: '5 22,23 * * *'
+
+permissions:
+  contents: read
+
+# Jamais deux déploiements en même temps, et on n'interrompt pas celui en cours.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Déployer sur le VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - name: Vérifier la configuration
+        id: config
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          VPS_APP_DIR: ${{ secrets.VPS_APP_DIR }}
+        run: |
+          if [ -z "$VPS_HOST" ] || [ -z "$VPS_USER" ] || [ -z "$VPS_SSH_KEY" ] || [ -z "$VPS_KNOWN_HOSTS" ] || [ -z "$VPS_APP_DIR" ]; then
+            echo "::notice::Secrets VPS_* non configurés : déploiement ignoré (voir docs/deploiement.md)."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Préparer SSH
+        if: steps.config.outputs.configured == 'true'
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Empreinte du serveur fournie à l'avance : la connexion échoue si le serveur n'est pas le bon.
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      - name: Déployer ${{ github.sha }}
+        if: steps.config.outputs.configured == 'true'
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_APP_DIR: ${{ secrets.VPS_APP_DIR }}
+          SHA: ${{ github.sha }}
+        run: |
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            "$VPS_USER@$VPS_HOST" \
+            "cd '$VPS_APP_DIR' && git fetch --depth=1 origin '$SHA' && git reset --hard '$SHA' && bash scripts/deploy.sh"
+
+      - name: Vérifier le site en ligne
+        if: steps.config.outputs.configured == 'true'
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ -z "$SITE_URL" ]; then echo "::notice::Variable SITE_URL absente : vérification en ligne ignorée."; exit 0; fi
+          for i in $(seq 1 15); do
+            report="$(curl -sf "$SITE_URL/healthz" || true)"
+            echo "$report" | grep -q "\"commit\":\"${SHA::7}\"" && { echo "En ligne : $report"; exit 0; }
+            sleep 4
+          done
+          echo "::error::$SITE_URL/healthz ne renvoie pas le commit ${SHA::7} : $report"
+          exit 1

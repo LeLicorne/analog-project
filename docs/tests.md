@@ -18,6 +18,10 @@ Couverture (`bun run test:coverage`) : environ 92 % des instructions et 83 % des
 - **`e2e/fixtures.ts` fait échouer tout test** qui provoque une erreur JavaScript non capturée ou une violation de Content-Security-Policy.
 - **Les tests de sécurité** vérifient les en-têtes sur pages statiques, pages rendues, erreurs 404 et fichiers ; le refus des méthodes d'écriture ; l'absence de cookie ; la non-réflexion d'adresses piégées ; et que le parcours complet ne contacte que le site et Firebase.
 
+## Intégration continue
+
+Tout ce qui précède tourne dans GitHub Actions (`.github/workflows/ci.yml`), plus les budgets Lighthouse et un test de démarrage de l'image Docker : voir `docs/deploiement.md`. La CI n'a besoin d'aucun secret (émulateurs Firebase, valeurs factices).
+
 ## Tests PWA
 
 - Les service workers sont **bloqués par défaut** (`serviceWorkers: 'block'` dans `playwright.config.ts`) : les tests restent indépendants du cache. Seuls `e2e/pwa.spec.ts` et `e2e/pwa-notifications.spec.ts` les activent.

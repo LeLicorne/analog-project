@@ -75,7 +75,7 @@ Sur l'accueil, « Envoyer une notification de test » affiche une notification s
 1. **Clé Web Push** : console Firebase > Paramètres du projet > Cloud Messaging > Certificats Web Push > générer une paire de clés. Mettre la clé **publique** dans `VITE_FIREBASE_VAPID_KEY` au build. Sans elle, le réglage est masqué.
 2. **Règles Firestore** : elles n'existent que dans le dépôt. Les publier : `bunx firebase deploy --only firestore:rules --project <votre-projet>`. **Sans cela, ni la sauvegarde des résultats ni l'enregistrement d'appareil ne fonctionneront contre le vrai projet.**
 3. **Script d'envoi** : créer un compte de service (console Google Cloud > IAM), garder le fichier JSON **secret** (secret GitHub Actions ou fichier hors dépôt). Tester sans rien envoyer : `GOOGLE_APPLICATION_CREDENTIALS=/chemin/cle.json bun scripts/send-daily-push.ts --dry-run`.
-4. **Planification** : cron quotidien (GitHub Actions ou VPS), à l'heure où vos joueurs jouent (thème 7).
+4. **Planification** : déjà écrite dans `.github/workflows/daily-push.yml` (17 h UTC, soit 18 h ou 19 h à Paris, modifiable). Ajouter le secret GitHub `FIREBASE_SERVICE_ACCOUNT` l'active ; lancée à la main, elle propose une simulation (`dry_run`).
 
 ### Ce qui est vérifié, et ce qui ne l'est pas
 

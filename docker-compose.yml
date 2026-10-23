@@ -1,0 +1,67 @@
+name: ${APP_NAME}
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        # Valeurs PUBLIQUES injectées dans le JavaScript au build (lues dans .env). Jamais de secret ici.
+        VITE_SITE_URL: https://${DOMAIN}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY:-}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN:-}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID:-}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET:-}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID:-}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID:-}
+        VITE_FIREBASE_MEASUREMENT_ID: ${VITE_FIREBASE_MEASUREMENT_ID:-}
+        VITE_FIREBASE_VAPID_KEY: ${VITE_FIREBASE_VAPID_KEY:-}
+        VITE_CONTACT_EMAIL: ${VITE_CONTACT_EMAIL:-}
+        VITE_AUTHOR_NAME: ${VITE_AUTHOR_NAME:-}
+        VITE_AUTHOR_GITHUB: ${VITE_AUTHOR_GITHUB:-}
+        VITE_AUTHOR_LINKEDIN: ${VITE_AUTHOR_LINKEDIN:-}
+        # Renseignés par scripts/deploy.sh : visibles sur /healthz pour vérifier ce qui tourne.
+        GIT_SHA: ${GIT_SHA:-unknown}
+        BUILD_DATE: ${BUILD_DATE:-unknown}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      SITE_URL: https://${DOMAIN}
+    networks:
+      - web
+    # Durcissement : système de fichiers en lecture seule, aucune capacité Linux, pas d'élévation de privilèges,
+    # mémoire et processus bornés, journaux tournants (sinon ils grossissent sans limite sur le disque du VPS).
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    pids_limit: 200
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.${APP_NAME}.rule=Host(`${DOMAIN}`)'
+      - 'traefik.http.routers.${APP_NAME}.entrypoints=websecure'
+      - 'traefik.http.routers.${APP_NAME}.tls.certresolver=le'
+      # Compression des pages rendues à la demande (les fichiers statiques sont déjà précompressés par l'application).
+      - 'traefik.http.routers.${APP_NAME}.middlewares=${APP_NAME}-compress'
+      - 'traefik.http.middlewares.${APP_NAME}-compress.compress=true'
+      # www -> domaine nu (301)
+      - 'traefik.http.routers.${APP_NAME}-www.rule=Host(`www.${DOMAIN}`)'
+      - 'traefik.http.routers.${APP_NAME}-www.entrypoints=websecure'
+      - 'traefik.http.routers.${APP_NAME}-www.tls.certresolver=le'
+      - 'traefik.http.routers.${APP_NAME}-www.middlewares=${APP_NAME}-nowww'
+      - "traefik.http.middlewares.${APP_NAME}-nowww.redirectregex.regex=^https://www\\.${DOMAIN}/(.*)"
+      - 'traefik.http.middlewares.${APP_NAME}-nowww.redirectregex.replacement=https://${DOMAIN}/$${1}'
+      - 'traefik.http.middlewares.${APP_NAME}-nowww.redirectregex.permanent=true'
+      - 'traefik.http.services.${APP_NAME}.loadbalancer.server.port=80'
+
+networks:
+  web:
+    external: true
