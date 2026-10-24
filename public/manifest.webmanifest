@@ -9,7 +9,7 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fffdf7",
+  "background_color": "#fff4c2",
   "theme_color": "#ffd23f",
   "categories": ["games", "education", "trivia"],
   "icons": [

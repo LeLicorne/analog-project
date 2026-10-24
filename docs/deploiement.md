@@ -71,7 +71,7 @@ Tant que ces secrets manquent, `deploy.yml` et `daily-push.yml` s'arrêtent **sa
 ## Points d'attention
 
 - **Deux couches d'accès pour les robots** (votre récap) : le `robots.txt` du site autorise les robots IA, mais un pare-feu, un CDN ou Traefik peut les bloquer avant. Après la mise en ligne : `curl -A "GPTBot" https://domaine/` doit renvoyer le HTML complet.
-- **HSTS** : l'application envoie `max-age` 2 ans, `includeSubDomains`, `preload` dès que `VITE_SITE_URL` est en https. Si d'autres sous-domaines du même domaine ne sont pas encore en https, retirer `includeSubDomains` dans `src/data/security/headers.ts` **avant** le premier déploiement (un navigateur retient le HSTS longtemps). Ne demander l'inscription à la liste « preload » qu'une fois sûr.
+- **HSTS** : l'application envoie `max-age` 2 ans, `includeSubDomains`, `preload` dès que `VITE_SITE_URL` est en https. Le HSTS ne vaut que pour **l'hôte qui l'envoie et ses sous-domaines**, jamais pour le domaine parent : servi depuis `analog.baptiste-lore.com`, il n'affecte ni `baptiste-lore.com` ni vos autres sous-domaines. Seuls d'éventuels sous-domaines de `analog.baptiste-lore.com` seraient concernés. L'inscription à la liste « preload » n'est pas faite : ne la demander que pour un domaine dont tout est en https, et en sachant qu'elle est difficile à annuler.
 - **Version des actions** : épinglées sur une version majeure et mises à jour par Dependabot (`.github/dependabot.yml`). Pour une sécurité maximale, les épingler sur un hash de commit.
 - **Compression** : les fichiers statiques sont précompressés par l'application, le middleware Traefik `compress` couvre les pages rendues à la demande.
 

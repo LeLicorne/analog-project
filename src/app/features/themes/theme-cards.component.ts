@@ -13,7 +13,7 @@ import { THEMES } from '@data/themes';
   template: `
     <ul class="cards">
       @for (theme of themes; track theme.slug) {
-        <li class="card">
+        <li class="card" [attr.data-theme]="theme.slug">
           <h3 class="card__title">
             <a [routerLink]="['/quiz', theme.slug]">
               <span aria-hidden="true">{{ theme.icon }}</span> {{ theme.name }}

@@ -45,3 +45,14 @@ Le JavaScript a grossi (+20 kB : fil d'Ariane, FAQ, données structurées, compt
 | À propos     | 82           | 99           | 3,66 s      | 1,87 s      | 0           | 0           |
 
 Détail des causes et des corrections dans `docs/performance.md`. Détail de l'accessibilité dans `docs/accessibilite.md`.
+
+## Refonte visuelle « cartoon / BD » (Lighthouse CI, mobile, médiane de 3 mesures)
+
+| Page         | Perf | Accessibilité | Bonnes pratiques | SEO | LCP    | CLS | TBT    |
+| ------------ | ---- | ------------- | ---------------- | --- | ------ | --- | ------ |
+| Accueil      | 97   | 100           | 100              | 100 | 1,66 s | 0   | 151 ms |
+| Thème        | 97   | 100           | 100              | 100 | 1,66 s | 0   | 162 ms |
+| Quiz du jour | 97   | 100           | 100              | 100 | 1,65 s | 0   | 152 ms |
+| À propos     | 98   | 100           | 100              | 100 | 1,65 s | 0   | 147 ms |
+
+La refonte est 100 % CSS : aucun fichier de police ni image ajouté, donc aucune requête de plus. Les budgets de `lighthouserc.json` passent. **Attention à la comparaison** : ces chiffres viennent de Lighthouse CI (3 mesures, médiane) alors que les tableaux précédents viennent du Lighthouse en ligne de commande (1 mesure) ; le TBT (environ 150 ms ici) n'a pas été mesuré avec Lighthouse CI avant la refonte, on ne peut donc pas en conclure qu'il a évolué. Le budget est de 200 ms.

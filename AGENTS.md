@@ -82,6 +82,12 @@ Règles de dépendances (appliquées par ESLint) : `pages → features/shared/co
 - Tout changement de `scripts/deploy.sh` se teste **en échec** (release cassée, retour arrière), pas seulement sur le cas nominal.
 - Ne jamais déployer, pousser ni lancer `docker compose up` contre la production sans demande explicite.
 
+## Design (détails dans `docs/design.md`)
+
+- Style « cartoon / BD » **100 % CSS**, tout dans `src/styles.css` : jamais de style en ligne ni dans un composant, jamais de police ou d'image externe (CSP, performance).
+- Toute couleur est un **jeton** ; `src/styles.contrast.spec.ts` échoue si un jeton passe sous 4,5:1 (texte) ou 3:1 (composants), en clair et en sombre. Nouvelle couleur = jeton + paire dans ce test, avant usage.
+- Pas d'`overflow: hidden`, de hauteur fixe ni de rotation sur un élément textuel ou large ; pas d'information portée par la couleur seule ; mouvements seulement sous `prefers-reduced-motion: no-preference`.
+
 ## Pièges connus (détails dans `docs/mesures.md`)
 
 - `afterNextRender` s'exécute aussi côté serveur : tester `isPlatformBrowser` avant de poser un drapeau « navigateur ».

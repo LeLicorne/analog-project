@@ -24,7 +24,7 @@ import { getTheme } from '@data/themes';
   imports: [BreadcrumbComponent, QuizCorrigeComponent, QuizPlayerComponent, RouterLink],
   template: `
     <app-breadcrumb [items]="crumbs()" />
-    <h1>
+    <h1 [attr.data-theme]="slug()">
       <span aria-hidden="true">{{ theme().icon }}</span>
       @if (isToday()) {
         Quiz {{ theme().name }} du jour

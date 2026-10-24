@@ -19,7 +19,7 @@ import { THEMES, getTheme, isThemeSlug } from '@data/themes';
   template: `
     @if (theme(); as theme) {
       <app-breadcrumb [items]="[{ label: 'Accueil', path: '/' }, { label: theme.name }]" />
-      <h1>
+      <h1 [attr.data-theme]="theme.slug">
         <span aria-hidden="true">{{ theme.icon }}</span> Quiz {{ theme.name }}
       </h1>
       <p class="lead">{{ theme.description }}</p>
