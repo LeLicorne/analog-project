@@ -12,6 +12,9 @@ export const AUTHOR = parseAuthor(import.meta.env);
 
 export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? '';
 
+/** Hébergeur affiché dans les mentions légales (nom, adresse et téléphone), vide tant que `VITE_HOST_NAME` n'est pas défini. */
+export const HOST_NAME = import.meta.env.VITE_HOST_NAME?.trim() ?? '';
+
 export function absoluteUrl(path: string): string {
   return `${SITE_URL}${path}`;
 }

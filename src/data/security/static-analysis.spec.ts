@@ -106,3 +106,18 @@ describe('contournements de la sanitisation (XSS)', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe('promesses de la page Confidentialité', () => {
+  const appSources = (pattern: RegExp): string[] =>
+    filesMatching(pattern, true).filter((path) => !path.endsWith('.spec.ts'));
+
+  it('aucun code n’écrit un cookie (la page annonce « aucun cookie »)', () => {
+    expect(appSources(/document\.cookie\s*=/)).toEqual([]);
+  });
+
+  it('aucun code n’active la mesure d’audience (la page annonce « aucune mesure d’audience »)', () => {
+    // La seule occurrence autorisée est la définition de la méthode, jamais un appel.
+    expect(appSources(/\.enableAnalytics\(/)).toEqual([]);
+    expect(appSources(/gtag|googletagmanager|google-analytics/)).toEqual([]);
+  });
+});

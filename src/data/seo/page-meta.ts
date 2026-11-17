@@ -61,6 +61,30 @@ export function accessibilityMeta(): PageMeta {
   };
 }
 
+export function legalNoticeMeta(): PageMeta {
+  return {
+    title: fitTitle('Mentions légales : éditeur et hébergeur'),
+    description:
+      'Mentions légales de Quizz du jour : éditeur du site, hébergeur, contact, propriété intellectuelle, liens externes et responsabilité.',
+  };
+}
+
+export function privacyMeta(): PageMeta {
+  return {
+    title: fitTitle('Confidentialité : données et stockage local'),
+    description:
+      'Quelles données Quizz du jour conserve : résultats dans votre navigateur, compte facultatif, notifications, aucun cookie ni mesure d’audience, vos droits RGPD.',
+  };
+}
+
+export function termsMeta(): PageMeta {
+  return {
+    title: fitTitle('Conditions d’utilisation du site'),
+    description:
+      'Règles d’utilisation de Quizz du jour : service gratuit, compte facultatif, usage attendu, contenus et sources, disponibilité et droit applicable.',
+  };
+}
+
 export function siteMapMeta(): PageMeta {
   return {
     title: fitTitle('Plan du site : tous les quiz'),

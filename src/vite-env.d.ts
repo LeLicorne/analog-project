@@ -19,6 +19,8 @@ interface ImportMetaEnv {
   readonly VITE_AUTHOR_LINKEDIN?: string;
   /** Adresse de contact affichée sur la page À propos (facultative). */
   readonly VITE_CONTACT_EMAIL?: string;
+  /** Hébergeur affiché dans les mentions légales (nom, adresse, téléphone), facultatif. */
+  readonly VITE_HOST_NAME?: string;
 }
 
 interface ImportMeta {

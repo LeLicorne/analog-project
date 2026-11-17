@@ -9,6 +9,9 @@ const ROUTES = [
   '/quiz/histoire',
   '/connexion',
   '/accessibilite',
+  '/mentions-legales',
+  '/confidentialite',
+  '/conditions-utilisation',
   '/plan-du-site',
 ];
 

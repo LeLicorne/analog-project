@@ -36,6 +36,15 @@ import { THEMES } from '@data/themes';
       <li><a routerLink="/">Accueil</a> : les six quiz du jour et les questions fréquentes.</li>
       <li><a routerLink="/a-propos">À propos</a> : méthode, sources et vie privée.</li>
       <li><a routerLink="/accessibilite">Accessibilité</a> : niveau visé, tests et limites.</li>
+      <li><a routerLink="/mentions-legales">Mentions légales</a> : éditeur, hébergeur, contact.</li>
+      <li>
+        <a routerLink="/confidentialite">Confidentialité</a> : données conservées, stockage local et
+        droits.
+      </li>
+      <li>
+        <a routerLink="/conditions-utilisation">Conditions d’utilisation</a> : règles d’usage du
+        service.
+      </li>
     </ul>
 
     <h2>Compte</h2>

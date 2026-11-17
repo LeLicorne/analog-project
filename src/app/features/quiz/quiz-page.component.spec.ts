@@ -72,7 +72,10 @@ describe('QuizPageComponent', () => {
     });
 
     it('relie les quiz entre eux : jour précédent impossible au lancement, retour au quiz du jour', async () => {
+      // Le lien « Quiz du jour » n'existe que pour le dernier jour passé : on fige la date du jour au lendemain de DATE.
+      vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-10-24T12:00:00+02:00') });
       const { element } = await render({ isToday: false, withCorrige: true });
+      vi.useRealTimers();
       const links = [...element.querySelectorAll('.day-nav a')].map((link) =>
         link.textContent.trim(),
       );

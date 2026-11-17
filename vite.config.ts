@@ -39,6 +39,9 @@ function prerenderRoutes(): Promise<string[]> {
     '/',
     '/a-propos',
     '/accessibilite',
+    '/mentions-legales',
+    '/confidentialite',
+    '/conditions-utilisation',
     '/plan-du-site',
     ...THEME_SLUGS.flatMap((theme) => [
       `/themes/${theme}`,

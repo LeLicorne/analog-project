@@ -8,6 +8,9 @@ const ROUTES = [
   '/quiz/histoire',
   '/a-propos',
   '/accessibilite',
+  '/mentions-legales',
+  '/confidentialite',
+  '/conditions-utilisation',
   '/plan-du-site',
 ];
 

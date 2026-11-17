@@ -23,6 +23,9 @@ export function sitemapEntries(today: IsoDate): SitemapEntry[] {
     { path: '/', lastmod: today },
     { path: '/a-propos', lastmod: today },
     { path: '/accessibilite', lastmod: today },
+    { path: '/mentions-legales', lastmod: today },
+    { path: '/confidentialite', lastmod: today },
+    { path: '/conditions-utilisation', lastmod: today },
     { path: '/plan-du-site', lastmod: today },
     ...THEMES.flatMap((theme) => [
       { path: `/themes/${theme.slug}`, lastmod: today },
