@@ -48,7 +48,7 @@ RUN bun run build
 # ── Étape 2 : exécution ───────────────────────────────────────────────────────────────────────────────────────────
 # Le serveur Nitro est autonome (dépendances incluses dans la sortie) : l'image finale ne contient ni Bun, ni
 # node_modules, ni code source, seulement Node et la sortie du build.
-FROM node:22-alpine AS runtime
+FROM node:26-alpine AS runtime
 WORKDIR /app
 
 COPY --from=build --chown=node:node /app/dist/analog ./
